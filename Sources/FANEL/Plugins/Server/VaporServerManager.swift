@@ -40,7 +40,7 @@ actor VaporServerManager {
             app.http.server.configuration.port = port
 
             // ルート登録
-            try configureRoutes(app)
+            try await configureRoutes(app)
 
             self.app = app
 
@@ -87,8 +87,8 @@ actor VaporServerManager {
 
     // MARK: - ルート設定
 
-    private func configureRoutes(_ app: Application) throws {
-        try Routes.register(app)
+    private func configureRoutes(_ app: Application) async throws {
+        try await PluginRegistry.shared.registerAllRoutes(app)
     }
 
     // MARK: - Bonjour (mDNS) 広告

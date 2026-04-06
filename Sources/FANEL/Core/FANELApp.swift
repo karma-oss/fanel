@@ -24,17 +24,21 @@ final class FANELAppDelegate: NSObject, NSApplicationDelegate {
 
         Task {
             await LogStore.shared.info("FANEL 起動")
-            await ProjectStore.shared.load()
-            await ToolBoxStore.shared.load()
-            await ModelRegistry.shared.startMonitoring()
-            await TailscaleManager.shared.startPolling()
-            let _ = await OwnershipManager.shared.acquireOwnership()
-            await PeerSyncManager.shared.startSync()
-            await IdleDetector.shared.setCallbacks(
-                onStart: { await IdleTaskScheduler.shared.startIdleCycle() },
-                onEnd: { await IdleTaskScheduler.shared.suspendIdleCycle() }
-            )
-            await IdleDetector.shared.startMonitoring()
+
+            // プラグイン登録
+            await PluginRegistry.shared.register(ServerPlugin())
+            await PluginRegistry.shared.register(ProjectsPlugin())
+            await PluginRegistry.shared.register(TasksPlugin())
+            await PluginRegistry.shared.register(ModelsPlugin())
+            await PluginRegistry.shared.register(OwnershipPlugin())
+            await PluginRegistry.shared.register(PeersPlugin())
+            await PluginRegistry.shared.register(ToolBoxPlugin())
+            await PluginRegistry.shared.register(IdlePlugin())
+            await PluginRegistry.shared.register(SelfEvolutionPlugin())
+
+            // 全プラグイン起動
+            await PluginRegistry.shared.startupAll()
+
             do {
                 try await VaporServerManager.shared.start()
                 await MainActor.run { self.updateIcon(running: true) }
@@ -48,13 +52,8 @@ final class FANELAppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillTerminate(_ notification: Notification) {
         let semaphore = DispatchSemaphore(value: 0)
         Task {
-            await IdleDetector.shared.stopMonitoring()
-            await IdleTaskScheduler.shared.suspendIdleCycle()
-            await PeerSyncManager.shared.stopSync()
-            await OwnershipManager.shared.releaseOwnership()
-            await TailscaleManager.shared.stopPolling()
-            await ModelRegistry.shared.stopMonitoring()
             await VaporServerManager.shared.stop()
+            await PluginRegistry.shared.shutdownAll()
             semaphore.signal()
         }
         _ = semaphore.wait(timeout: .now() + 5)
