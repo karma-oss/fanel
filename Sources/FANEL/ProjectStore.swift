@@ -111,6 +111,21 @@ actor ProjectStore {
         logger.info("プロジェクト切替: \(p.name)")
     }
 
+    // MARK: - 更新
+
+    func update(id: UUID, name: String?, path: String?) {
+        guard let p = projects[id] else { return }
+        projects[id] = ProjectProfile(
+            id: p.id,
+            name: name ?? p.name,
+            path: path ?? p.path,
+            status: p.status,
+            lastOpenedAt: p.lastOpenedAt
+        )
+        persist()
+        logger.info("プロジェクト更新: \(self.projects[id]!.name)")
+    }
+
     // MARK: - 取得
 
     func list() -> [ProjectProfile] {

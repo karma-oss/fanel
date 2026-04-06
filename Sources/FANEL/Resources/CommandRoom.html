@@ -30,6 +30,19 @@ main{flex:1;display:grid;grid-template-columns:220px 1fr;grid-template-rows:auto
 .project-item .p-status.active{background:rgba(63,185,80,0.2);color:var(--green)}
 .project-item .p-status.idle{background:rgba(139,148,158,0.1);color:var(--text-dim)}
 .project-item .path{font-size:9px;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.project-edit{padding:8px;border-radius:4px;margin-bottom:2px;background:var(--bg);border:1px solid var(--accent)}
+.project-edit input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:4px 6px;color:var(--text);font-size:11px;outline:none;margin-bottom:4px}
+.project-edit input:focus{border-color:var(--accent)}
+.project-edit .pe-buttons{display:flex;gap:4px;margin-top:4px}
+.project-edit .pe-buttons button{font-size:9px;padding:3px 8px;border-radius:3px;border:none;cursor:pointer}
+.pe-save{background:var(--green);color:#fff}
+.pe-cancel{background:var(--border);color:var(--text)}
+.pe-delete{background:var(--red);color:#fff}
+.pe-activate{background:var(--accent);color:#fff}
+.model-edit{padding:8px;border-radius:4px;margin-bottom:2px;background:var(--bg);border:1px solid var(--accent);font-size:10px}
+.model-edit input,.model-edit select{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:3px 5px;color:var(--text);font-size:10px;outline:none;margin-bottom:3px}
+.model-edit .me-buttons{display:flex;gap:3px;margin-top:3px;flex-wrap:wrap}
+.model-edit .me-buttons button{font-size:8px;padding:2px 6px;border-radius:3px;border:none;cursor:pointer}
 .badge{display:inline-block;font-size:8px;padding:1px 4px;border-radius:8px}
 .badge.active{background:rgba(63,185,80,0.15);color:var(--green)}
 .badge.idle{background:rgba(139,148,158,0.15);color:var(--text-dim)}
@@ -140,7 +153,7 @@ main{flex:1;display:grid;grid-template-columns:220px 1fr;grid-template-rows:auto
 <main>
   <aside class="sidebar">
     <div><h2>Projects</h2><div id="projectList"><div class="empty">...</div></div></div>
-    <div><h2>Models</h2><div id="modelList"><div class="empty">...</div></div></div>
+    <div><h2>Models <button onclick="showAddModel()" style="font-size:8px;padding:1px 5px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--accent);cursor:pointer;float:right">+追加</button></h2><div id="modelList"><div class="empty">...</div></div></div>
     <div><h2>ToolBox</h2><div id="toolboxList"><div class="empty">なし</div></div></div>
     <div><h2>Idle History</h2><div id="idleHistory"><div class="empty">なし</div></div><button onclick="triggerIdle()" style="margin-top:4px;font-size:9px;padding:2px 8px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--cyan);cursor:pointer">今すぐ実行</button></div>
   </aside>
@@ -183,12 +196,24 @@ function fetchStatus(){
 }
 function fetchProjects(){
   fetch(API+'/api/projects').then(function(r){return r.json()}).then(function(ps){
-    document.getElementById('projectList').innerHTML=ps.map(function(p){return'<div class="project-item '+(p.status==='active'?'active':'')+'" onclick="activateProject(\''+p.id+'\')"><div class="name">'+esc(p.name)+'<span class="p-status '+p.status+'">'+(p.status==='active'?'ACTIVE':'idle')+'</span></div><div class="path">'+esc(p.path)+'</div></div>';}).join('')||'<div class="empty">なし</div>';
+    var el=document.getElementById('projectList');
+    // 編集中ならスキップ
+    if(el.querySelector('.project-edit'))return;
+    el.innerHTML=ps.map(function(p){return'<div class="project-item '+(p.status==='active'?'active':'')+'" onclick="editProject(\''+p.id+'\',\''+esc(p.name).replace(/'/g,"\\'")+'\',\''+esc(p.path).replace(/'/g,"\\'")+'\',\''+p.status+'\')"><div class="name">'+esc(p.name)+'<span class="p-status '+p.status+'">'+(p.status==='active'?'ACTIVE':'idle')+'</span></div><div class="path">'+esc(p.path)+'</div></div>';}).join('')||'<div class="empty">なし</div>';
   }).catch(function(){});
 }
 function fetchModels(){
   fetch(API+'/api/models').then(function(r){return r.json()}).then(function(ms){
-    document.getElementById('modelList').innerHTML=ms.map(function(m){return'<div class="model-item layer'+m.layer+'"><div class="m-head"><span class="m-name">'+esc(m.name)+'</span><span class="m-layer">L'+m.layer+'</span></div></div>';}).join('')||'<div class="empty">なし</div>';
+    var ml=document.getElementById('modelList');
+    if(ml.querySelector('.model-edit'))return;
+    ml.innerHTML=ms.map(function(m){
+      var st=m.status,info=m.file_size_mb>0?m.file_size_mb+'MB':'';
+      if(m.tokens_per_sec>0)info+=' '+m.tokens_per_sec.toFixed(1)+'tok/s';
+      return'<div class="model-item layer'+m.layer+'" onclick="editModel(\''+m.id+'\',\''+esc(m.name)+'\','+m.layer+',\''+st+'\')">'
+        +'<div class="m-head"><span class="m-name">'+esc(m.name)+'</span><span class="m-layer">L'+m.layer+' '+st+'</span></div>'
+        +(info?'<div style="font-size:8px;color:var(--text-dim)">'+info+'</div>':'')
+        +'</div>';
+    }).join('')||'<div class="empty">なし</div>';
   }).catch(function(){});
 }
 function fetchToolbox(){
@@ -258,6 +283,57 @@ function fetchIdleHistory(){
   }).catch(function(){});
 }
 function activateProject(id){fetch(API+'/api/projects/'+id+'/activate',{method:'POST'}).then(function(){fetchProjects();fetchLogs();});}
+function editProject(id,name,path,status){
+  var el=document.getElementById('projectList');
+  el.innerHTML='<div class="project-edit"><input type="text" id="pe-name" value="'+name+'" placeholder="プロジェクト名"><input type="text" id="pe-path" value="'+path+'" placeholder="パス"><div class="pe-buttons">'
+    +'<button class="pe-save" onclick="saveProject(\''+id+'\')">保存</button>'
+    +'<button class="pe-activate" onclick="activateProject(\''+id+'\');fetchProjects();">切替</button>'
+    +'<button class="pe-delete" onclick="deleteProject(\''+id+'\')">削除</button>'
+    +'<button class="pe-cancel" onclick="fetchProjects()">閉じる</button>'
+    +'</div></div>';
+  document.getElementById('pe-name').focus();
+}
+function saveProject(id){
+  var n=document.getElementById('pe-name').value.trim(),p=document.getElementById('pe-path').value.trim();
+  if(!n)return;
+  fetch(API+'/api/projects/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:n,path:p})}).then(function(){fetchProjects();fetchLogs();});
+}
+function editModel(id,name,layer,status){
+  var el=document.getElementById('modelList');
+  el.innerHTML='<div class="model-edit"><input type="text" id="me-name" value="'+name+'" placeholder="モデル名">'
+    +'<div style="display:flex;gap:4px"><select id="me-layer"><option value="1"'+(layer===1?' selected':'')+'>Layer 1</option><option value="2"'+(layer===2?' selected':'')+'>Layer 2</option><option value="3"'+(layer===3?' selected':'')+'>Layer 3</option><option value="4"'+(layer===4?' selected':'')+'>Layer 4</option></select>'
+    +'<select id="me-status"><option value="active"'+(status==='active'?' selected':'')+'>active</option><option value="inactive"'+(status==='inactive'?' selected':'')+'>inactive</option><option value="experimental"'+(status==='experimental'?' selected':'')+'>experimental</option></select></div>'
+    +'<div class="me-buttons">'
+    +'<button class="pe-save" onclick="saveModel(\''+id+'\')">保存</button>'
+    +'<button class="pe-activate" onclick="benchmarkModel(\''+id+'\')">ベンチ</button>'
+    +(status==='active'?'<button class="pe-delete" onclick="disableModel(\''+id+'\')">無効化</button>':'<button class="pe-activate" onclick="enableModel(\''+id+'\')">有効化</button>')
+    +'<button class="pe-cancel" onclick="fetchModels()">閉じる</button>'
+    +'</div></div>';
+}
+function saveModel(id){
+  var n=document.getElementById('me-name').value.trim(),l=parseInt(document.getElementById('me-layer').value),s=document.getElementById('me-status').value;
+  fetch(API+'/api/models/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:n,layer:l,status:s})}).then(function(){fetchModels();fetchLogs();});
+}
+function enableModel(id){fetch(API+'/api/models/'+id+'/enable',{method:'POST'}).then(function(){fetchModels();});}
+function disableModel(id){fetch(API+'/api/models/'+id+'/disable',{method:'POST'}).then(function(){fetchModels();});}
+function benchmarkModel(id){fetch(API+'/api/models/'+id+'/benchmark',{method:'POST'}).then(function(){fetchModels();fetchLogs();});}
+function showAddModel(){
+  var el=document.getElementById('modelList');
+  el.innerHTML='<div class="model-edit"><input type="text" id="me-add-name" placeholder="モデル名（例: qwen3-7b）">'
+    +'<input type="text" id="me-add-path" placeholder="GGUFファイルパス">'
+    +'<select id="me-add-layer"><option value="1">Layer 1</option><option value="2" selected>Layer 2</option><option value="3">Layer 3</option></select>'
+    +'<div class="me-buttons"><button class="pe-save" onclick="addModel()">追加</button><button class="pe-cancel" onclick="fetchModels()">閉じる</button></div></div>';
+  document.getElementById('me-add-name').focus();
+}
+function addModel(){
+  var n=document.getElementById('me-add-name').value.trim(),p=document.getElementById('me-add-path').value.trim(),l=parseInt(document.getElementById('me-add-layer').value);
+  if(!n)return;
+  fetch(API+'/api/models',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:n,path:p,layer:l})}).then(function(){fetchModels();fetchLogs();});
+}
+function deleteProject(id){
+  if(!confirm('このプロジェクトを削除しますか？'))return;
+  fetch(API+'/api/projects/'+id,{method:'DELETE'}).then(function(){fetchProjects();fetchLogs();});
+}
 function triggerIdle(){fetch(API+'/api/idle/resume',{method:'POST'}).then(function(){fetchLogs();});}
 // Settings
 function toggleSettings(){document.getElementById('settingsPanel').classList.toggle('open');}

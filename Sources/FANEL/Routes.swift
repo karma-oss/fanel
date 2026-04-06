@@ -96,6 +96,21 @@ struct Routes {
             return Response(status: .ok, body: .init(string: "{\"ok\":true}"))
         }
 
+        // PUT /api/projects/:id → プロジェクト更新
+        app.put("api", "projects", ":projectId") { req async throws -> Response in
+            struct UpdateRequest: Content {
+                let name: String?
+                let path: String?
+            }
+            guard let idStr = req.parameters.get("projectId"),
+                  let id = UUID(uuidString: idStr) else {
+                throw Abort(.badRequest, reason: "Invalid project ID")
+            }
+            let r = try req.content.decode(UpdateRequest.self)
+            await ProjectStore.shared.update(id: id, name: r.name, path: r.path)
+            return Response(status: .ok, body: .init(string: "{\"ok\":true}"))
+        }
+
         // POST /api/tasks → Council→WorkerPool経由でタスク送信（オーナーのみ）
         app.post("api", "tasks") { req async throws -> Response in
             // Tailscale接続中はオーナーチェック
@@ -176,6 +191,35 @@ struct Routes {
                 headers: ["Content-Type": "application/json"],
                 body: .init(data: data)
             )
+        }
+
+        // POST /api/models → モデル手動追加
+        app.post("api", "models") { req async throws -> Response in
+            struct AddModelRequest: Content {
+                let name: String
+                let path: String?
+                let layer: Int?
+            }
+            let r = try req.content.decode(AddModelRequest.self)
+            await ModelRegistry.shared.addManual(name: r.name, filePath: r.path ?? "", layer: r.layer ?? 2)
+            await LogStore.shared.info("モデル手動追加: \(r.name)")
+            return Response(status: .created, body: .init(string: "{\"ok\":true}"))
+        }
+
+        // PUT /api/models/:id → モデル更新
+        app.put("api", "models", ":modelId") { req async throws -> Response in
+            struct UpdateModelRequest: Content {
+                let name: String?
+                let layer: Int?
+                let status: String?
+            }
+            guard let idStr = req.parameters.get("modelId"),
+                  let id = UUID(uuidString: idStr) else {
+                throw Abort(.badRequest, reason: "Invalid model ID")
+            }
+            let r = try req.content.decode(UpdateModelRequest.self)
+            await ModelRegistry.shared.update(id: id, name: r.name, layer: r.layer, statusStr: r.status)
+            return Response(status: .ok, body: .init(string: "{\"ok\":true}"))
         }
 
         // POST /api/models/:id/enable

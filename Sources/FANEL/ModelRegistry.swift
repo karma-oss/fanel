@@ -161,6 +161,50 @@ actor ModelRegistry {
         )
     }
 
+    // MARK: - 手動追加
+
+    func addManual(name: String, filePath: String, layer: Int) {
+        let profile = ModelProfile(
+            id: UUID(),
+            name: name,
+            filePath: filePath,
+            fileSizeMB: 0,
+            layer: min(4, max(1, layer)),
+            tokensPerSec: 0,
+            qualityScore: 0,
+            memoryMB: 0,
+            status: .experimental,
+            profiledAt: Date()
+        )
+        models[profile.id] = profile
+        logger.info("Model added manually: \(name) (Layer \(layer))")
+    }
+
+    // MARK: - 更新
+
+    func update(id: UUID, name: String?, layer: Int?, statusStr: String?) {
+        guard let m = models[id] else { return }
+        let newStatus: ModelStatus
+        if let s = statusStr, let parsed = ModelStatus(rawValue: s) {
+            newStatus = parsed
+        } else {
+            newStatus = m.status
+        }
+        models[id] = ModelProfile(
+            id: m.id,
+            name: name ?? m.name,
+            filePath: m.filePath,
+            fileSizeMB: m.fileSizeMB,
+            layer: layer ?? m.layer,
+            tokensPerSec: m.tokensPerSec,
+            qualityScore: m.qualityScore,
+            memoryMB: m.memoryMB,
+            status: newStatus,
+            profiledAt: m.profiledAt
+        )
+        logger.info("Model updated: \(self.models[id]!.name)")
+    }
+
     // MARK: - ベンチマーク実行
 
     func runBenchmark(modelId: UUID) async {
