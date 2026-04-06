@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FANEL 指令室</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0d1117;--surface:#161b22;--border:#30363d;--text:#e6edf3;--text-dim:#8b949e;--accent:#58a6ff;--green:#3fb950;--red:#f85149;--yellow:#d29922;--purple:#bc8cff;--orange:#f0883e;--cyan:#39d353}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
+header h1{font-size:16px;font-weight:600}
+.header-badges{display:flex;gap:10px;align-items:center}
+.status-badge{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim)}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--red)}
+.status-dot.ok{background:var(--green)}
+.hb-badge{font-size:10px;padding:1px 6px;border-radius:3px}
+.hb-badge.online{background:rgba(63,185,80,0.15);color:var(--green)}
+.hb-badge.offline{background:rgba(248,81,73,0.12);color:var(--red)}
+.tb-badge{font-size:10px;padding:1px 6px;border-radius:3px;background:rgba(57,211,83,0.15);color:var(--cyan)}
+main{flex:1;display:grid;grid-template-columns:220px 1fr;grid-template-rows:auto 1fr auto;gap:0;overflow:hidden}
+@media(max-width:768px){main{grid-template-columns:1fr;grid-template-rows:auto auto auto 1fr auto}.sidebar{grid-row:auto}}
+.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:10px;overflow-y:auto;grid-row:1/3;display:flex;flex-direction:column;gap:12px;font-size:12px}
+.sidebar h2{font-size:10px;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;letter-spacing:0.5px}
+.project-item{padding:6px 8px;border-radius:4px;margin-bottom:2px;cursor:pointer}
+.project-item:hover{background:var(--border)}
+.project-item .name{font-size:12px;font-weight:500}
+.project-item .path{font-size:9px;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.badge{display:inline-block;font-size:8px;padding:1px 4px;border-radius:8px}
+.badge.active{background:rgba(63,185,80,0.15);color:var(--green)}
+.badge.idle{background:rgba(139,148,158,0.15);color:var(--text-dim)}
+.model-item{padding:4px 6px;border-radius:3px;margin-bottom:2px;background:var(--bg);font-size:10px;border-left:2px solid var(--text-dim)}
+.model-item.layer1{border-left-color:var(--green)}.model-item.layer2{border-left-color:var(--accent)}.model-item.layer3{border-left-color:var(--orange)}.model-item.layer4{border-left-color:var(--purple)}
+.model-item .m-head{display:flex;justify-content:space-between}
+.model-item .m-name{font-weight:500}.model-item .m-layer{font-size:8px;opacity:0.7}
+.tb-item{padding:4px 6px;border-radius:3px;margin-bottom:2px;background:var(--bg);font-size:10px;border-left:2px solid var(--cyan)}
+.tb-item .tb-head{display:flex;justify-content:space-between}
+.tb-item .tb-name{font-weight:500}.tb-item .tb-count{color:var(--text-dim);font-size:9px}
+.tb-item .tb-desc{color:var(--text-dim);font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.task-panel{border-bottom:1px solid var(--border);max-height:200px;overflow-y:auto;padding:8px 12px}
+.task-panel h2{font-size:10px;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px;letter-spacing:0.5px}
+.task-item{padding:6px 8px;border-radius:4px;margin-bottom:4px;background:var(--surface);border-left:3px solid var(--text-dim);font-size:11px}
+.task-item.running{border-left-color:var(--yellow)}.task-item.complete{border-left-color:var(--green)}.task-item.error{border-left-color:var(--red)}.task-item.waiting,.task-item.draft{border-left-color:var(--accent)}.task-item.waitingForCouncil{border-left-color:var(--purple)}.task-item.waitingForUser{border-left-color:var(--yellow)}
+.task-item .task-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+.task-item .task-goal{font-weight:500;font-size:11px}
+.task-item .task-status{font-size:8px;padding:1px 4px;border-radius:2px}
+.task-status.running{background:rgba(210,153,34,0.15);color:var(--yellow)}.task-status.complete{background:rgba(63,185,80,0.15);color:var(--green)}.task-status.error{background:rgba(248,81,73,0.15);color:var(--red)}.task-status.waitingForCouncil{background:rgba(188,140,255,0.15);color:var(--purple)}.task-status.waitingForUser{background:rgba(210,153,34,0.2);color:var(--yellow)}
+.task-item .task-msg{color:var(--text-dim);font-size:10px;margin-top:1px;word-break:break-all}
+.toolbox-hit{color:var(--cyan);font-size:10px;font-weight:500;margin-top:2px}
+.council-info{margin-top:4px;padding:4px 6px;border-radius:3px;background:rgba(188,140,255,0.06);border:1px solid rgba(188,140,255,0.1);font-size:9px}
+.council-info .ci-label{color:var(--purple);font-weight:500}
+.council-info .ci-row{color:var(--text-dim)}
+.question-box{margin-top:4px;padding:5px;border-radius:3px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.15)}
+.question-box .q-text{color:var(--yellow);font-size:10px;margin-bottom:4px;white-space:pre-wrap}
+.question-box .q-input{display:flex;gap:4px}
+.question-box input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:3px 6px;color:var(--text);font-size:10px;outline:none}
+.question-box button{font-size:9px;padding:3px 8px;border-radius:3px;border:none;cursor:pointer;background:var(--yellow);color:#000;font-weight:500}
+.content{display:flex;flex-direction:column;overflow:hidden}
+.logs{flex:1;padding:10px 12px;overflow-y:auto;font-family:"SF Mono",SFMono-Regular,Consolas,monospace;font-size:10px;line-height:1.5}
+.log-entry{padding:1px 0;display:flex;gap:5px}
+.log-entry .time{color:var(--text-dim);white-space:nowrap;min-width:60px}
+.log-entry .level{min-width:44px;text-align:center;font-size:8px;padding:1px 2px;border-radius:2px;align-self:flex-start;margin-top:1px}
+.level.info{background:rgba(88,166,255,0.15);color:var(--accent)}.level.warning{background:rgba(210,153,34,0.15);color:var(--yellow)}.level.error{background:rgba(248,81,73,0.15);color:var(--red)}
+.log-entry .msg{word-break:break-all}
+.log-entry .msg.toolbox-msg{color:var(--cyan);font-weight:500}
+.input-area{border-top:1px solid var(--border);padding:8px 12px;display:flex;gap:6px;grid-column:1/-1}
+.input-area input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:6px 10px;color:var(--text);font-size:12px;outline:none}
+.input-area input:focus{border-color:var(--accent)}
+.input-area button{background:var(--accent);color:#fff;border:none;border-radius:4px;padding:6px 14px;font-size:12px;font-weight:500;cursor:pointer}
+.input-area button:hover{opacity:0.9}
+.input-area button:disabled{opacity:0.4;cursor:not-allowed}
+.progress-bar{height:4px;background:var(--border);border-radius:2px;margin-top:4px;overflow:hidden}
+.progress-bar .fill{height:100%;border-radius:2px;transition:width 0.3s}
+.progress-bar .fill.low{background:var(--red)}.progress-bar .fill.mid{background:var(--yellow)}.progress-bar .fill.high{background:var(--green)}
+.milestone{font-size:9px;color:var(--yellow);margin-top:2px;font-weight:500}
+.remaining{font-size:9px;color:var(--text-dim);margin-top:1px}
+.blocker-alert{font-size:9px;color:var(--red);margin-top:2px;font-weight:500}
+.owner-badge{font-size:10px;padding:1px 6px;border-radius:3px;font-weight:500}
+.owner-badge.owner{background:rgba(63,185,80,0.2);color:var(--green)}
+.owner-badge.readonly{background:rgba(248,81,73,0.15);color:var(--red)}
+.ts-badge{font-size:10px;padding:1px 6px;border-radius:3px}
+.ts-badge.connected{background:rgba(88,166,255,0.15);color:var(--accent)}
+.ts-badge.disconnected{background:rgba(139,148,158,0.1);color:var(--text-dim)}
+.input-area.readonly input{opacity:0.4;pointer-events:none}
+.input-area.readonly button{opacity:0.3;pointer-events:none}
+.idle-badge{font-size:10px;padding:1px 6px;border-radius:3px;font-weight:500}
+.idle-badge.active{background:rgba(139,148,158,0.1);color:var(--text-dim)}
+.idle-badge.idle{background:rgba(57,211,83,0.15);color:var(--cyan);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+.idle-item{padding:3px 6px;border-radius:3px;margin-bottom:2px;background:var(--bg);font-size:9px;border-left:2px solid var(--cyan)}
+.idle-item .ih-name{font-weight:500;color:var(--cyan)}.idle-item .ih-result{color:var(--text-dim)}
+.empty{color:var(--text-dim);text-align:center;padding:12px;font-size:11px}
+</style>
+</head>
+<body>
+<header>
+  <h1>FANEL 指令室</h1>
+  <div class="header-badges">
+    <span class="idle-badge active" id="idleBadge">Active</span>
+    <span class="owner-badge" id="ownerBadge">...</span>
+    <span class="ts-badge disconnected" id="tsBadge">TS</span>
+    <span class="tb-badge" id="tbBadge">ToolBox: 0</span>
+    <span class="hb-badge offline" id="hbBadge">Hayabusa offline</span>
+    <div class="status-badge"><span class="status-dot" id="statusDot"></span><span id="statusText">...</span></div>
+  </div>
+</header>
+<main>
+  <aside class="sidebar">
+    <div><h2>Projects</h2><div id="projectList"><div class="empty">...</div></div></div>
+    <div><h2>Models</h2><div id="modelList"><div class="empty">...</div></div></div>
+    <div><h2>ToolBox</h2><div id="toolboxList"><div class="empty">なし</div></div></div>
+    <div><h2>Idle History</h2><div id="idleHistory"><div class="empty">なし</div></div><button onclick="triggerIdle()" style="margin-top:4px;font-size:9px;padding:2px 8px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--cyan);cursor:pointer">今すぐ実行</button></div>
+  </aside>
+  <div class="task-panel"><h2>Tasks</h2><div id="taskList"><div class="empty">タスクなし</div></div></div>
+  <div class="content"><div class="logs" id="logArea"><div class="empty">ログなし</div></div></div>
+  <div class="input-area">
+    <input type="text" id="taskInput" placeholder="タスクを入力..." autocomplete="off">
+    <button id="sendBtn">送信</button>
+  </div>
+</main>
+<script>
+var API=location.origin,sending=false;
+
+function fetchStatus(){
+  fetch(API+'/api/status').then(function(r){return r.json()}).then(function(d){
+    var dot=document.getElementById('statusDot'),txt=document.getElementById('statusText');
+    if(d.status==='running'){dot.classList.add('ok');txt.textContent='v'+d.version;}
+    else{dot.classList.remove('ok');txt.textContent=d.status;}
+    var hb=document.getElementById('hbBadge');
+    hb.className='hb-badge '+(d.hayabusa==='online'?'online':'offline');
+    hb.textContent='Hayabusa '+(d.hayabusa==='online'?'online':'offline');
+    document.getElementById('tbBadge').textContent='ToolBox: '+(d.toolbox_entries||0);
+    // Owner badge
+    var ob=document.getElementById('ownerBadge');
+    if(d.is_owner){ob.className='owner-badge owner';ob.textContent='Owner';}
+    else{ob.className='owner-badge readonly';ob.textContent='読取専用 ('+esc(d.owner||'')+')'; }
+    // Tailscale badge
+    var tb=document.getElementById('tsBadge');
+    if(d.tailscale==='connected'){tb.className='ts-badge connected';tb.textContent='Tailscale';}
+    else if(d.tailscale==='disconnected'){tb.className='ts-badge disconnected';tb.textContent='TS切断';}
+    else{tb.className='ts-badge disconnected';tb.textContent='TS未装';}
+    // Idle badge
+    var ib=document.getElementById('idleBadge');
+    if(d.idle){ib.className='idle-badge idle';ib.textContent=d.idle_task?'🔄 '+d.idle_task:'🔄 自律改善中';}
+    else{ib.className='idle-badge active';ib.textContent='Active';}
+    // Readonly mode for input
+    var ia=document.querySelector('.input-area');
+    if(d.tailscale==='connected'&&!d.is_owner){ia.classList.add('readonly');}else{ia.classList.remove('readonly');}
+  }).catch(function(){document.getElementById('statusDot').classList.remove('ok');document.getElementById('statusText').textContent='切断';});
+}
+function fetchProjects(){
+  fetch(API+'/api/projects').then(function(r){return r.json()}).then(function(ps){
+    document.getElementById('projectList').innerHTML=ps.map(function(p){return'<div class="project-item"><div class="name">'+esc(p.name)+'</div><div class="path">'+esc(p.path)+'</div></div>';}).join('')||'<div class="empty">なし</div>';
+  }).catch(function(){});
+}
+function fetchModels(){
+  fetch(API+'/api/models').then(function(r){return r.json()}).then(function(ms){
+    document.getElementById('modelList').innerHTML=ms.map(function(m){return'<div class="model-item layer'+m.layer+'"><div class="m-head"><span class="m-name">'+esc(m.name)+'</span><span class="m-layer">L'+m.layer+'</span></div></div>';}).join('')||'<div class="empty">なし</div>';
+  }).catch(function(){});
+}
+function fetchToolbox(){
+  fetch(API+'/api/toolbox').then(function(r){return r.json()}).then(function(ts){
+    document.getElementById('toolboxList').innerHTML=ts.map(function(t){return'<div class="tb-item"><div class="tb-head"><span class="tb-name">'+esc(t.name)+'</span><span class="tb-count">x'+t.usage_count+'</span></div><div class="tb-desc">'+esc(t.description)+'</div></div>';}).join('')||'<div class="empty">なし</div>';
+  }).catch(function(){});
+}
+function statusLabel(s){return{draft:'Draft',waitingForCouncil:'会議中',waitingForUser:'回答待',running:'実行中',complete:'完了',error:'エラー',waiting:'待機'}[s]||s;}
+function fetchTasks(){
+  fetch(API+'/api/tasks').then(function(r){return r.json()}).then(function(tasks){
+    var el=document.getElementById('taskList');
+    if(!tasks.length){el.innerHTML='<div class="empty">タスクなし</div>';return;}
+    el.innerHTML=tasks.map(function(t){
+      var s=t.status,h='<div class="task-item '+s+'"><div class="task-head"><span class="task-goal">'+esc(t.goal).substring(0,40)+'</span><span class="task-status '+s+'">'+statusLabel(s)+'</span></div><div class="task-msg">'+esc(t.message).substring(0,150)+'</div>';
+      if(t.council_result){
+        var c=t.council_result;
+        // 進捗バー
+        if(c.progress_score>=0){
+          var cls=c.progress_score<30?'low':c.progress_score<70?'mid':'high';
+          h+='<div class="progress-bar"><div class="fill '+cls+'" style="width:'+c.progress_score+'%"></div></div>';
+        }
+        // マイルストーン
+        if(c.current_milestone)h+='<div class="milestone">'+esc(c.current_milestone)+'</div>';
+        // 残りスライス
+        if(c.estimated_slices>0)h+='<div class="remaining">残り'+c.estimated_slices+'スライス</div>';
+        if(c.remaining_slices&&c.remaining_slices.length)h+='<div class="remaining">→ '+esc(c.remaining_slices.join(', ').substring(0,100))+'</div>';
+        // ブロッカー
+        if(c.blockers&&c.blockers.length)h+='<div class="blocker-alert">⚠ '+esc(c.blockers.join(', '))+'</div>';
+        // Council概要
+        h+='<div class="council-info"><span class="ci-label">Council</span> <span class="ci-row">c='+c.complexity+(c.progress_score>=0?' '+c.progress_score+'%':'')+' '+(c.consensus_reached?'合意':'未達')+'</span></div>';
+      }
+      if(s==='waitingForUser'&&t.council_result&&t.council_result.questions_for_user&&t.council_result.questions_for_user.length){h+='<div class="question-box"><div class="q-text">'+esc(t.council_result.questions_for_user.join('\n'))+'</div><div class="q-input"><input type="text" id="answer-'+t.id+'" placeholder="回答..."><button onclick="answerTask(\''+t.id+'\')">回答</button></div></div>';}
+      h+='</div>';return h;
+    }).join('');
+  }).catch(function(){});
+}
+function fetchLogs(){
+  fetch(API+'/api/logs').then(function(r){return r.json()}).then(function(logs){
+    var el=document.getElementById('logArea');
+    if(!logs.length){el.innerHTML='<div class="empty">ログなし</div>';return;}
+    el.innerHTML=logs.map(function(l){
+      var t=new Date(l.timestamp),ts=pad(t.getHours())+':'+pad(t.getMinutes())+':'+pad(t.getSeconds());
+      var isTB=l.message.indexOf('ToolBox')>=0;
+      return'<div class="log-entry"><span class="time">'+ts+'</span><span class="level '+l.level+'">'+l.level+'</span><span class="msg'+(isTB?' toolbox-msg':'')+'">'+esc(l.message)+'</span></div>';
+    }).join('');
+    el.scrollTop=el.scrollHeight;
+  }).catch(function(){});
+}
+function sendTask(){
+  var input=document.getElementById('taskInput'),btn=document.getElementById('sendBtn'),goal=input.value.trim();
+  if(!goal||sending)return;
+  sending=true;btn.disabled=true;btn.textContent='処理中...';input.value='';
+  fetch(API+'/api/tasks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({goal:goal})})
+    .then(function(r){return r.json()}).then(function(){sending=false;btn.disabled=false;btn.textContent='送信';fetchTasks();fetchLogs();fetchToolbox();input.focus();})
+    .catch(function(){sending=false;btn.disabled=false;btn.textContent='送信';input.focus();});
+}
+function answerTask(id){var input=document.getElementById('answer-'+id);if(!input)return;var a=input.value.trim();if(!a)return;input.disabled=true;fetch(API+'/api/tasks/'+id+'/answer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({answer:a})}).then(function(){fetchTasks();fetchLogs();}).catch(function(){input.disabled=false;});}
+function fetchIdleHistory(){
+  fetch(API+'/api/idle/history').then(function(r){return r.json()}).then(function(hs){
+    var el=document.getElementById('idleHistory');
+    if(!hs.length){el.innerHTML='<div class="empty">なし</div>';return;}
+    el.innerHTML=hs.map(function(h){return'<div class="idle-item"><span class="ih-name">'+esc(h.task_name)+'</span> <span class="ih-result">'+esc(h.result).substring(0,60)+'</span></div>';}).join('');
+  }).catch(function(){});
+}
+function triggerIdle(){fetch(API+'/api/idle/resume',{method:'POST'}).then(function(){fetchLogs();});}
+document.getElementById('sendBtn').addEventListener('click',sendTask);
+document.getElementById('taskInput').addEventListener('keydown',function(e){if(e.key==='Enter')sendTask();});
+function esc(s){if(!s)return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function pad(n){return n<10?'0'+n:''+n;}
+fetchStatus();fetchProjects();fetchModels();fetchToolbox();fetchTasks();fetchLogs();fetchIdleHistory();
+setInterval(function(){fetchLogs();fetchStatus();fetchTasks();fetchToolbox();fetchIdleHistory();},3000);
+</script>
+</body>
+</html>

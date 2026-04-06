@@ -1,0 +1,8 @@
+.build/
+*.o
+*.d
+DerivedData/
+.DS_Store
+fanel_debug.log
+.env
+Package.resolved
