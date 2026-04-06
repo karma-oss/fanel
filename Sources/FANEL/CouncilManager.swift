@@ -113,7 +113,6 @@ actor CouncilManager {
     private func analyzeWithClaude(goal: String) async -> CouncilAnalysis? {
         let prompt = """
         あなたはFANELのCouncilメンバーとして要件を分析します。
-        現在の目標への達成度と残り作業も必ず分析してください。
 
         [COUNCIL_RESPONSE_BEGIN]
         {
@@ -121,12 +120,7 @@ actor CouncilManager {
           "constraints": ["制約1"],
           "execution_plan": ["手順1"],
           "risks": [],
-          "questions_for_user": [],
-          "progress_score": 0,
-          "remaining_slices": ["未完了タスク1"],
-          "blockers": [],
-          "current_milestone": "Step 1/1: 実行",
-          "estimated_slices": 1
+          "questions_for_user": []
         }
         [COUNCIL_RESPONSE_END]
 
@@ -135,13 +129,6 @@ actor CouncilManager {
         - モジュール跨ぎあり → +1
         - 破壊的変更あり → +1
         - 合計を0〜3の範囲で回答
-
-        進捗評価の指針:
-        - progress_score: このタスクが完了したとき、全体目標の何%が達成されるか (0〜100)
-        - remaining_slices: このタスク完了後に残るサブタスクを具体的に列挙
-        - blockers: 人間の判断や確認が必要なもの
-        - current_milestone: 「Step X/Y: 内容」形式で現在地を示す
-        - estimated_slices: 残りの作業を何スライスで完了できるか (1〜20)
 
         タスク: \(goal)
         """

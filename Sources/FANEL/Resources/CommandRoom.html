@@ -6,7 +6,7 @@
 <title>FANEL 指令室</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0d1117;--surface:#161b22;--border:#30363d;--text:#e6edf3;--text-dim:#8b949e;--accent:#58a6ff;--green:#3fb950;--red:#f85149;--yellow:#d29922;--purple:#bc8cff;--orange:#f0883e;--cyan:#39d353;--fs-base:12px;--fs-task:11px;--fs-log:10px;--fs-sidebar:10px}
+:root{--bg:#0d1117;--surface:#161b22;--border:#30363d;--text:#e6edf3;--text-dim:#9CA3AF;--accent:#58a6ff;--green:#3fb950;--red:#f85149;--yellow:#d29922;--purple:#bc8cff;--orange:#f0883e;--cyan:#39d353;--fs-base:12px;--fs-task:13px;--fs-log:12px;--fs-sidebar:11px}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
 header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
 header h1{font-size:16px;font-weight:600}
@@ -18,7 +18,7 @@ header h1{font-size:16px;font-weight:600}
 .hb-badge.online{background:rgba(63,185,80,0.15);color:var(--green)}
 .hb-badge.offline{background:rgba(248,81,73,0.12);color:var(--red)}
 .tb-badge{font-size:10px;padding:1px 6px;border-radius:3px;background:rgba(57,211,83,0.15);color:var(--cyan)}
-main{flex:1;display:grid;grid-template-columns:220px 1fr;grid-template-rows:auto 1fr auto;gap:0;overflow:hidden}
+main{flex:1;display:grid;grid-template-columns:220px 1fr;grid-template-rows:minmax(120px,40%) 1fr auto;gap:0;overflow:hidden}
 @media(max-width:768px){main{grid-template-columns:1fr;grid-template-rows:auto auto auto 1fr auto}.sidebar{grid-row:auto}}
 .sidebar{background:var(--surface);border-right:1px solid var(--border);padding:10px;overflow-y:auto;grid-row:1/3;display:flex;flex-direction:column;gap:12px;font-size:var(--fs-sidebar)}
 .sidebar h2{font-size:10px;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;letter-spacing:0.5px}
@@ -29,7 +29,7 @@ main{flex:1;display:grid;grid-template-columns:220px 1fr;grid-template-rows:auto
 .project-item .p-status{font-size:8px;padding:1px 4px;border-radius:3px;margin-left:4px}
 .project-item .p-status.active{background:rgba(63,185,80,0.2);color:var(--green)}
 .project-item .p-status.idle{background:rgba(139,148,158,0.1);color:var(--text-dim)}
-.project-item .path{font-size:9px;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.project-item .path{font-size:11px;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .project-edit{padding:8px;border-radius:4px;margin-bottom:2px;background:var(--bg);border:1px solid var(--accent)}
 .project-edit input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:4px 6px;color:var(--text);font-size:11px;outline:none;margin-bottom:4px}
 .project-edit input:focus{border-color:var(--accent)}
@@ -43,9 +43,9 @@ main{flex:1;display:grid;grid-template-columns:220px 1fr;grid-template-rows:auto
 .model-edit input,.model-edit select{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:3px 5px;color:var(--text);font-size:10px;outline:none;margin-bottom:3px}
 .model-edit .me-buttons{display:flex;gap:3px;margin-top:3px;flex-wrap:wrap}
 .model-edit .me-buttons button{font-size:8px;padding:2px 6px;border-radius:3px;border:none;cursor:pointer}
-.badge{display:inline-block;font-size:8px;padding:1px 4px;border-radius:8px}
-.badge.active{background:rgba(63,185,80,0.15);color:var(--green)}
-.badge.idle{background:rgba(139,148,158,0.15);color:var(--text-dim)}
+.badge{display:inline-block;font-size:10px;padding:1px 4px;border-radius:8px}
+.badge.active{background:rgba(63,185,80,0.22);color:var(--green)}
+.badge.idle{background:rgba(139,148,158,0.22);color:var(--text-dim)}
 .model-item{padding:4px 6px;border-radius:3px;margin-bottom:2px;background:var(--bg);font-size:10px;border-left:2px solid var(--text-dim)}
 .model-item.layer1{border-left-color:var(--green)}.model-item.layer2{border-left-color:var(--accent)}.model-item.layer3{border-left-color:var(--orange)}.model-item.layer4{border-left-color:var(--purple)}
 .model-item .m-head{display:flex;justify-content:space-between}
@@ -54,15 +54,16 @@ main{flex:1;display:grid;grid-template-columns:220px 1fr;grid-template-rows:auto
 .tb-item .tb-head{display:flex;justify-content:space-between}
 .tb-item .tb-name{font-weight:500}.tb-item .tb-count{color:var(--text-dim);font-size:9px}
 .tb-item .tb-desc{color:var(--text-dim);font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.task-panel{border-bottom:1px solid var(--border);max-height:200px;overflow-y:auto;padding:8px 12px}
+.task-panel{border-bottom:1px solid var(--border);overflow-y:auto;padding:8px 12px}
 .task-panel h2{font-size:10px;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px;letter-spacing:0.5px}
 .task-item{padding:6px 8px;border-radius:4px;margin-bottom:4px;background:var(--surface);border-left:3px solid var(--text-dim);font-size:var(--fs-task)}
 .task-item.running{border-left-color:var(--yellow)}.task-item.complete{border-left-color:var(--green)}.task-item.error{border-left-color:var(--red)}.task-item.waiting,.task-item.draft{border-left-color:var(--accent)}.task-item.waitingForCouncil{border-left-color:var(--purple)}.task-item.waitingForUser{border-left-color:var(--yellow)}
 .task-item .task-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
 .task-item .task-goal{font-weight:500;font-size:11px}
-.task-item .task-status{font-size:8px;padding:1px 4px;border-radius:2px}
-.task-status.running{background:rgba(210,153,34,0.15);color:var(--yellow)}.task-status.complete{background:rgba(63,185,80,0.15);color:var(--green)}.task-status.error{background:rgba(248,81,73,0.15);color:var(--red)}.task-status.waitingForCouncil{background:rgba(188,140,255,0.15);color:var(--purple)}.task-status.waitingForUser{background:rgba(210,153,34,0.2);color:var(--yellow)}
-.task-item .task-msg{color:var(--text-dim);font-size:10px;margin-top:1px;word-break:break-all}
+.task-item .task-status{font-size:10px;padding:1px 4px;border-radius:2px}
+.task-status.running{background:rgba(210,153,34,0.22);color:var(--yellow)}.task-status.complete{background:rgba(63,185,80,0.22);color:var(--green)}.task-status.error{background:rgba(248,81,73,0.22);color:var(--red)}.task-status.waitingForCouncil{background:rgba(188,140,255,0.22);color:var(--purple)}.task-status.waitingForUser{background:rgba(210,153,34,0.22);color:var(--yellow)}
+.task-item .task-msg{color:var(--text-dim);font-size:10px;margin-top:1px;word-break:break-all;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;cursor:pointer}
+.task-item .task-msg.expanded{-webkit-line-clamp:unset;display:block;background:rgba(88,166,255,0.04);padding:6px;border-radius:4px;font-family:"SF Mono",SFMono-Regular,Consolas,monospace;white-space:pre-wrap}
 .toolbox-hit{color:var(--cyan);font-size:10px;font-weight:500;margin-top:2px}
 .council-info{margin-top:4px;padding:4px 6px;border-radius:3px;background:rgba(188,140,255,0.06);border:1px solid rgba(188,140,255,0.1);font-size:9px}
 .council-info .ci-label{color:var(--purple);font-weight:500}
@@ -134,16 +135,16 @@ main{flex:1;display:grid;grid-template-columns:220px 1fr;grid-template-rows:auto
 <div class="settings-panel" id="settingsPanel">
   <h3>表示設定</h3>
   <div class="setting-row">
-    <label>タスク文字サイズ <span class="val" id="valTask">11px</span></label>
-    <input type="range" min="9" max="20" value="11" id="fsTask" oninput="applyFS()">
+    <label>タスク文字サイズ <span class="val" id="valTask">13px</span></label>
+    <input type="range" min="9" max="20" value="13" id="fsTask" oninput="applyFS()">
   </div>
   <div class="setting-row">
-    <label>ログ文字サイズ <span class="val" id="valLog">10px</span></label>
-    <input type="range" min="8" max="18" value="10" id="fsLog" oninput="applyFS()">
+    <label>ログ文字サイズ <span class="val" id="valLog">12px</span></label>
+    <input type="range" min="8" max="18" value="12" id="fsLog" oninput="applyFS()">
   </div>
   <div class="setting-row">
-    <label>サイドバー文字サイズ <span class="val" id="valSidebar">10px</span></label>
-    <input type="range" min="8" max="16" value="10" id="fsSidebar" oninput="applyFS()">
+    <label>サイドバー文字サイズ <span class="val" id="valSidebar">11px</span></label>
+    <input type="range" min="8" max="16" value="11" id="fsSidebar" oninput="applyFS()">
   </div>
   <div class="setting-row">
     <label>入力欄文字サイズ <span class="val" id="valInput">16px</span></label>
@@ -152,9 +153,9 @@ main{flex:1;display:grid;grid-template-columns:220px 1fr;grid-template-rows:auto
 </div>
 <main>
   <aside class="sidebar">
-    <div><h2>Projects</h2><div id="projectList"><div class="empty">...</div></div></div>
+    <div><h2>Projects <button onclick="showAddProject()" style="font-size:8px;padding:1px 5px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--accent);cursor:pointer;float:right">+追加</button></h2><div id="projectList"><div class="empty">...</div></div></div>
     <div><h2>Models <button onclick="showAddModel()" style="font-size:8px;padding:1px 5px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--accent);cursor:pointer;float:right">+追加</button></h2><div id="modelList"><div class="empty">...</div></div></div>
-    <div><h2>ToolBox</h2><div id="toolboxList"><div class="empty">なし</div></div></div>
+    <div><h2>ToolBox <button onclick="showAddToolbox()" style="font-size:8px;padding:1px 5px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--cyan);cursor:pointer;float:right">+追加</button></h2><div id="toolboxList"><div class="empty">なし</div></div></div>
     <div><h2>Idle History</h2><div id="idleHistory"><div class="empty">なし</div></div><button onclick="triggerIdle()" style="margin-top:4px;font-size:9px;padding:2px 8px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--cyan);cursor:pointer">今すぐ実行</button></div>
   </aside>
   <div class="task-panel"><h2>Tasks</h2><div id="taskList"><div class="empty">タスクなし</div></div></div>
@@ -165,10 +166,50 @@ main{flex:1;display:grid;grid-template-columns:220px 1fr;grid-template-rows:auto
   </div>
 </main>
 <script>
-var API=location.origin,sending=false;
+var API=location.origin,sending=false,answerEditing=false,serverOnline=true;
+var pollFast=null,pollSlow=null;
+
+// Element.closest ポリフィル
+if(!Element.prototype.closest){Element.prototype.closest=function(s){var el=this;do{if(el.matches(s))return el;el=el.parentElement||el.parentNode;}while(el!==null&&el.nodeType===1);return null;};}
+
+function esc(s){if(!s)return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function pad(n){return n<10?'0'+n:''+n;}
+
+// Phase 0-1: IME対応共通関数
+function handleInputKeydown(e, callback) {
+  if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) {
+    e.preventDefault();
+    callback();
+  }
+}
+
+// Phase 2-9: エラー表示
+function showError(msg) {
+  var el = document.getElementById('logArea');
+  var div = document.createElement('div');
+  div.className = 'log-entry';
+  div.innerHTML = '<span class="time">--:--:--</span><span class="level error">error</span><span class="msg">' + esc(msg) + '</span>';
+  el.appendChild(div);
+}
+function handleFetchError(context) {
+  return function(err) {
+    serverOnline = false;
+    var input = document.getElementById('taskInput');
+    if (input) input.placeholder = '\u26A0 \u30B5\u30FC\u30D0\u30FC\u306B\u63A5\u7D9A\u3067\u304D\u307E\u305B\u3093';
+    showError(context + ': ' + (err.message || err));
+  };
+}
+function markOnline() {
+  if (!serverOnline) {
+    serverOnline = true;
+    var input = document.getElementById('taskInput');
+    if (input) input.placeholder = '\u30BF\u30B9\u30AF\u3092\u5165\u529B...';
+  }
+}
 
 function fetchStatus(){
   fetch(API+'/api/status').then(function(r){return r.json()}).then(function(d){
+    markOnline();
     var dot=document.getElementById('statusDot'),txt=document.getElementById('statusText');
     if(d.status==='running'){dot.classList.add('ok');txt.textContent='v'+d.version;}
     else{dot.classList.remove('ok');txt.textContent=d.status;}
@@ -176,34 +217,31 @@ function fetchStatus(){
     hb.className='hb-badge '+(d.hayabusa==='online'?'online':'offline');
     hb.textContent='Hayabusa '+(d.hayabusa==='online'?'online':'offline');
     document.getElementById('tbBadge').textContent='ToolBox: '+(d.toolbox_entries||0);
-    // Owner badge
     var ob=document.getElementById('ownerBadge');
     if(d.is_owner){ob.className='owner-badge owner';ob.textContent='Owner';}
-    else{ob.className='owner-badge readonly';ob.textContent='読取専用 ('+esc(d.owner||'')+')'; }
-    // Tailscale badge
+    else{ob.className='owner-badge readonly';ob.textContent='\u8AAD\u53D6\u5C02\u7528 ('+esc(d.owner||'')+')'; }
     var tb=document.getElementById('tsBadge');
     if(d.tailscale==='connected'){tb.className='ts-badge connected';tb.textContent='Tailscale';}
-    else if(d.tailscale==='disconnected'){tb.className='ts-badge disconnected';tb.textContent='TS切断';}
-    else{tb.className='ts-badge disconnected';tb.textContent='TS未装';}
-    // Idle badge
+    else if(d.tailscale==='disconnected'){tb.className='ts-badge disconnected';tb.textContent='TS\u5207\u65AD';}
+    else{tb.className='ts-badge disconnected';tb.textContent='TS\u672A\u88C5';}
     var ib=document.getElementById('idleBadge');
-    if(d.idle){ib.className='idle-badge idle';ib.textContent=d.idle_task?'🔄 '+d.idle_task:'🔄 自律改善中';}
+    if(d.idle){ib.className='idle-badge idle';ib.textContent=d.idle_task?'\uD83D\uDD04 '+d.idle_task:'\uD83D\uDD04 \u81EA\u5F8B\u6539\u5584\u4E2D';}
     else{ib.className='idle-badge active';ib.textContent='Active';}
-    // Readonly mode for input
     var ia=document.querySelector('.input-area');
     if(d.tailscale==='connected'&&!d.is_owner){ia.classList.add('readonly');}else{ia.classList.remove('readonly');}
-  }).catch(function(){document.getElementById('statusDot').classList.remove('ok');document.getElementById('statusText').textContent='切断';});
+  }).catch(function(){document.getElementById('statusDot').classList.remove('ok');document.getElementById('statusText').textContent='\u5207\u65AD';});
 }
 function fetchProjects(){
   fetch(API+'/api/projects').then(function(r){return r.json()}).then(function(ps){
+    markOnline();
     var el=document.getElementById('projectList');
-    // 編集中ならスキップ
     if(el.querySelector('.project-edit'))return;
-    el.innerHTML=ps.map(function(p){return'<div class="project-item '+(p.status==='active'?'active':'')+'" onclick="editProject(\''+p.id+'\',\''+esc(p.name).replace(/'/g,"\\'")+'\',\''+esc(p.path).replace(/'/g,"\\'")+'\',\''+p.status+'\')"><div class="name">'+esc(p.name)+'<span class="p-status '+p.status+'">'+(p.status==='active'?'ACTIVE':'idle')+'</span></div><div class="path">'+esc(p.path)+'</div></div>';}).join('')||'<div class="empty">なし</div>';
-  }).catch(function(){});
+    el.innerHTML=ps.map(function(p){return'<div class="project-item '+(p.status==='active'?'active':'')+'" onclick="editProject(\''+p.id+'\',\''+esc(p.name).replace(/'/g,"\\'")+'\',\''+esc(p.path).replace(/'/g,"\\'")+'\',\''+p.status+'\')"><div class="name">'+esc(p.name)+'<span class="p-status '+p.status+'">'+(p.status==='active'?'ACTIVE':'idle')+'</span></div><div class="path">'+esc(p.path)+'</div></div>';}).join('')||'<div class="empty">\u306A\u3057</div>';
+  }).catch(handleFetchError('Projects'));
 }
 function fetchModels(){
   fetch(API+'/api/models').then(function(r){return r.json()}).then(function(ms){
+    markOnline();
     var ml=document.getElementById('modelList');
     if(ml.querySelector('.model-edit'))return;
     ml.innerHTML=ms.map(function(m){
@@ -211,130 +249,216 @@ function fetchModels(){
       if(m.tokens_per_sec>0)info+=' '+m.tokens_per_sec.toFixed(1)+'tok/s';
       return'<div class="model-item layer'+m.layer+'" onclick="editModel(\''+m.id+'\',\''+esc(m.name)+'\','+m.layer+',\''+st+'\')">'
         +'<div class="m-head"><span class="m-name">'+esc(m.name)+'</span><span class="m-layer">L'+m.layer+' '+st+'</span></div>'
-        +(info?'<div style="font-size:8px;color:var(--text-dim)">'+info+'</div>':'')
+        +(info?'<div style="font-size:9px;color:var(--text-dim)">'+info+'</div>':'')
         +'</div>';
-    }).join('')||'<div class="empty">なし</div>';
-  }).catch(function(){});
+    }).join('')||'<div class="empty">\u306A\u3057</div>';
+  }).catch(handleFetchError('Models'));
 }
 function fetchToolbox(){
   fetch(API+'/api/toolbox').then(function(r){return r.json()}).then(function(ts){
-    document.getElementById('toolboxList').innerHTML=ts.map(function(t){return'<div class="tb-item"><div class="tb-head"><span class="tb-name">'+esc(t.name)+'</span><span class="tb-count">x'+t.usage_count+'</span></div><div class="tb-desc">'+esc(t.description)+'</div></div>';}).join('')||'<div class="empty">なし</div>';
-  }).catch(function(){});
+    markOnline();
+    document.getElementById('toolboxList').innerHTML=ts.map(function(t){
+      return'<div class="tb-item"><div class="tb-head"><span class="tb-name">'+esc(t.name)+'</span><span class="tb-count">x'+t.usage_count
+        +' <button onclick="event.stopPropagation();executeToolbox(\''+t.id+'\')" style="font-size:9px;padding:0 4px;border:1px solid var(--cyan);border-radius:2px;background:none;color:var(--cyan);cursor:pointer" data-testid="toolbox-run-'+t.id+'">\u25B6</button>'
+        +' <button onclick="event.stopPropagation();deleteToolbox(\''+t.id+'\')" style="font-size:9px;padding:0 4px;border:1px solid var(--red);border-radius:2px;background:none;color:var(--red);cursor:pointer" data-testid="toolbox-delete-'+t.id+'">\u00D7</button>'
+        +'</span></div><div class="tb-desc">'+esc(t.description)+'</div></div>';
+    }).join('')||'<div class="empty">\u306A\u3057</div>';
+  }).catch(handleFetchError('ToolBox'));
 }
-function statusLabel(s){return{draft:'Draft',waitingForCouncil:'会議中',waitingForUser:'回答待',running:'実行中',complete:'完了',error:'エラー',waiting:'待機'}[s]||s;}
+function statusLabel(s){return{draft:'Draft',waitingForCouncil:'\u4F1A\u8B70\u4E2D',waitingForUser:'\u56DE\u7B54\u5F85',running:'\u5B9F\u884C\u4E2D',complete:'\u5B8C\u4E86',error:'\u30A8\u30E9\u30FC',waiting:'\u5F85\u6A5F'}[s]||s;}
 function fetchTasks(){
-  // 回答欄にフォーカスがある場合は再描画スキップ（入力中のテキストが消えるのを防止）
+  // Phase 0-1: 回答欄にフォーカスがある場合は再描画スキップ
   var ae=document.activeElement;
-  if(ae&&ae.id&&ae.id.indexOf('answer-')===0)return;
+  if(answerEditing||(ae&&ae.closest&&ae.closest('.question-box')))return;
   fetch(API+'/api/tasks').then(function(r){return r.json()}).then(function(tasks){
+    markOnline();
     var el=document.getElementById('taskList');
-    if(!tasks.length){el.innerHTML='<div class="empty">タスクなし</div>';return;}
+    if(!tasks.length){el.innerHTML='<div class="empty">\u30BF\u30B9\u30AF\u306A\u3057</div>';return;}
     el.innerHTML=tasks.map(function(t){
-      var s=t.status,h='<div class="task-item '+s+'"><div class="task-head"><span class="task-goal">'+esc(t.goal).substring(0,40)+'</span><span class="task-status '+s+'">'+statusLabel(s)+'</span></div><div class="task-msg">'+esc(t.message).substring(0,150)+'</div>';
+      var s=t.status,h='<div class="task-item '+s+'"><div class="task-head"><span class="task-goal">'+esc(t.goal).substring(0,40)+'</span><span class="task-status '+s+'">'+statusLabel(s)+'</span></div><div class="task-msg">'+esc(t.message)+'</div>';
       if(t.council_result){
         var c=t.council_result;
-        // 進捗バー
         if(c.progress_score>=0){
           var cls=c.progress_score<30?'low':c.progress_score<70?'mid':'high';
           h+='<div class="progress-bar"><div class="fill '+cls+'" style="width:'+c.progress_score+'%"></div></div>';
         }
-        // マイルストーン
         if(c.current_milestone)h+='<div class="milestone">'+esc(c.current_milestone)+'</div>';
-        // 残りスライス
-        if(c.estimated_slices>0)h+='<div class="remaining">残り'+c.estimated_slices+'スライス</div>';
-        if(c.remaining_slices&&c.remaining_slices.length)h+='<div class="remaining">→ '+esc(c.remaining_slices.join(', ').substring(0,100))+'</div>';
-        // ブロッカー
-        if(c.blockers&&c.blockers.length)h+='<div class="blocker-alert">⚠ '+esc(c.blockers.join(', '))+'</div>';
-        // Council概要
-        h+='<div class="council-info"><span class="ci-label">Council</span> <span class="ci-row">c='+c.complexity+(c.progress_score>=0?' '+c.progress_score+'%':'')+' '+(c.consensus_reached?'合意':'未達')+'</span></div>';
+        if(c.estimated_slices>0)h+='<div class="remaining">\u6B8B\u308A'+c.estimated_slices+'\u30B9\u30E9\u30A4\u30B9</div>';
+        if(c.remaining_slices&&c.remaining_slices.length)h+='<div class="remaining">\u2192 '+esc(c.remaining_slices.join(', ').substring(0,100))+'</div>';
+        if(c.blockers&&c.blockers.length)h+='<div class="blocker-alert">\u26A0 '+esc(c.blockers.join(', '))+'</div>';
+        h+='<div class="council-info"><span class="ci-label">Council</span> <span class="ci-row">c='+c.complexity+(c.progress_score>=0?' '+c.progress_score+'%':'')+' '+(c.consensus_reached?'\u5408\u610F':'\u672A\u9054')+'</span></div>';
       }
-      if(s==='waitingForUser'&&t.council_result&&t.council_result.questions_for_user&&t.council_result.questions_for_user.length){h+='<div class="question-box"><div class="q-text">'+esc(t.council_result.questions_for_user.join('\n'))+'</div><div class="q-input"><input type="text" id="answer-'+t.id+'" placeholder="回答..." oncompositionstart="composing=true" oncompositionend="composing=false" onkeydown="if(event.key===\'Enter\'&&!composing)answerTask(\''+t.id+'\')"><button onclick="answerTask(\''+t.id+'\')">回答</button></div></div>';}
+      // Phase 0-1: インラインハンドラを削除、動的バインドに移行
+      if(s==='waitingForUser'&&t.council_result&&t.council_result.questions_for_user&&t.council_result.questions_for_user.length){
+        h+='<div class="question-box"><div class="q-text">'+esc(t.council_result.questions_for_user.join('\n'))+'</div><div class="q-input"><input type="text" id="answer-'+t.id+'" placeholder="\u56DE\u7B54..." data-testid="answer-input-'+t.id+'"><button onclick="answerTask(\''+t.id+'\')" data-testid="answer-btn-'+t.id+'">\u56DE\u7B54</button></div></div>';
+      }
       h+='</div>';return h;
     }).join('');
-  }).catch(function(){});
+    // Phase 2-2: task-msg展開トグル
+    document.querySelectorAll('.task-msg').forEach(function(el) {
+      el.addEventListener('click', function() { this.classList.toggle('expanded'); });
+    });
+    // Phase 0-1: 回答欄の動的イベントバインド
+    document.querySelectorAll('.question-box input').forEach(function(input) {
+      var taskId = input.id.replace('answer-', '');
+      input.addEventListener('focus', function() { answerEditing = true; });
+      input.addEventListener('blur', function() {
+        setTimeout(function() { answerEditing = false; }, 200);
+      });
+      input.addEventListener('keydown', function(e) {
+        handleInputKeydown(e, function() { answerTask(taskId); });
+      });
+    });
+  }).catch(handleFetchError('Tasks'));
 }
 function fetchLogs(){
   fetch(API+'/api/logs').then(function(r){return r.json()}).then(function(logs){
+    markOnline();
     var el=document.getElementById('logArea');
-    if(!logs.length){el.innerHTML='<div class="empty">ログなし</div>';return;}
+    if(!logs.length){el.innerHTML='<div class="empty">\u30ED\u30B0\u306A\u3057</div>';return;}
     logs=logs.slice(-20);
     el.innerHTML=logs.map(function(l){
       var t=new Date(l.timestamp),ts=pad(t.getHours())+':'+pad(t.getMinutes())+':'+pad(t.getSeconds());
       var isTB=l.message.indexOf('ToolBox')>=0;
       return'<div class="log-entry"><span class="time">'+ts+'</span><span class="level '+l.level+'">'+l.level+'</span><span class="msg'+(isTB?' toolbox-msg':'')+'">'+esc(l.message)+'</span></div>';
     }).join('');
-    el.scrollTop=el.scrollHeight;
-  }).catch(function(){});
+    // Phase 0-2: スマートスクロール（下端付近の時だけ自動スクロール）
+    var isNearBottom = (el.scrollHeight - el.scrollTop - el.clientHeight) < 60;
+    if (isNearBottom) el.scrollTop = el.scrollHeight;
+  }).catch(handleFetchError('Logs'));
 }
 function sendTask(){
   var input=document.getElementById('taskInput'),btn=document.getElementById('sendBtn'),goal=input.value.trim();
   if(!goal||sending)return;
-  sending=true;btn.disabled=true;btn.textContent='処理中...';input.value='';
+  sending=true;btn.disabled=true;btn.textContent='\u51E6\u7406\u4E2D...';input.value='';
   fetch(API+'/api/tasks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({goal:goal})})
-    .then(function(r){return r.json()}).then(function(){sending=false;btn.disabled=false;btn.textContent='送信';fetchTasks();fetchLogs();fetchToolbox();input.focus();})
-    .catch(function(){sending=false;btn.disabled=false;btn.textContent='送信';input.focus();});
+    .then(function(r){return r.json()}).then(function(envelope){
+      sending=false;btn.disabled=false;btn.textContent='\u9001\u4FE1';
+      // Phase 2-3: レスポンスをインライン仮表示
+      if(envelope&&envelope.id){
+        var el=document.getElementById('taskList');
+        var empty=el.querySelector('.empty');
+        if(empty)el.innerHTML='';
+        var s=envelope.status||'draft';
+        var div=document.createElement('div');
+        div.className='task-item '+s;
+        div.style.opacity='0.7';
+        div.innerHTML='<div class="task-head"><span class="task-goal">'+esc(envelope.goal||goal).substring(0,40)+'</span><span class="task-status '+s+'">'+statusLabel(s)+'</span></div><div class="task-msg">'+esc(envelope.message||'\u51E6\u7406\u4E2D...')+'</div>';
+        el.insertBefore(div,el.firstChild);
+      }
+      fetchTasks();fetchLogs();fetchToolbox();input.focus();
+    })
+    .catch(function(err){sending=false;btn.disabled=false;btn.textContent='\u9001\u4FE1';input.focus();handleFetchError('SendTask')(err);});
 }
-function answerTask(id){var input=document.getElementById('answer-'+id);if(!input)return;var a=input.value.trim();if(!a)return;input.disabled=true;fetch(API+'/api/tasks/'+id+'/answer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({answer:a})}).then(function(){fetchTasks();fetchLogs();}).catch(function(){input.disabled=false;});}
+function answerTask(id){
+  var input=document.getElementById('answer-'+id);if(!input)return;
+  var a=input.value.trim();if(!a)return;
+  input.disabled=true;
+  // Phase 0-1: disabled中のポーリング再描画による二重送信防止
+  answerEditing=true;
+  fetch(API+'/api/tasks/'+id+'/answer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({answer:a})})
+    .then(function(){answerEditing=false;fetchTasks();fetchLogs();})
+    .catch(function(err){input.disabled=false;answerEditing=false;handleFetchError('Answer')(err);});
+}
 function fetchIdleHistory(){
   fetch(API+'/api/idle/history').then(function(r){return r.json()}).then(function(hs){
+    markOnline();
     var el=document.getElementById('idleHistory');
-    if(!hs.length){el.innerHTML='<div class="empty">なし</div>';return;}
+    if(!hs.length){el.innerHTML='<div class="empty">\u306A\u3057</div>';return;}
     el.innerHTML=hs.map(function(h){return'<div class="idle-item"><span class="ih-name">'+esc(h.task_name)+'</span> <span class="ih-result">'+esc(h.result).substring(0,60)+'</span></div>';}).join('');
-  }).catch(function(){});
+  }).catch(handleFetchError('IdleHistory'));
 }
-function activateProject(id){fetch(API+'/api/projects/'+id+'/activate',{method:'POST'}).then(function(){fetchProjects();fetchLogs();});}
+function activateProject(id){fetch(API+'/api/projects/'+id+'/activate',{method:'POST'}).then(function(){fetchProjects();fetchLogs();}).catch(handleFetchError('ActivateProject'));}
 function editProject(id,name,path,status){
   var el=document.getElementById('projectList');
-  el.innerHTML='<div class="project-edit"><input type="text" id="pe-name" value="'+name+'" placeholder="プロジェクト名"><input type="text" id="pe-path" value="'+path+'" placeholder="パス"><div class="pe-buttons">'
-    +'<button class="pe-save" onclick="saveProject(\''+id+'\')">保存</button>'
-    +'<button class="pe-activate" onclick="activateProject(\''+id+'\');fetchProjects();">切替</button>'
-    +'<button class="pe-delete" onclick="deleteProject(\''+id+'\')">削除</button>'
-    +'<button class="pe-cancel" onclick="fetchProjects()">閉じる</button>'
+  el.innerHTML='<div class="project-edit"><input type="text" id="pe-name" value="'+name+'" placeholder="\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u540D"><input type="text" id="pe-path" value="'+path+'" placeholder="\u30D1\u30B9"><div class="pe-buttons">'
+    +'<button class="pe-save" onclick="saveProject(\''+id+'\')" data-testid="project-save">保存</button>'
+    +'<button class="pe-activate" onclick="activateProject(\''+id+'\');fetchProjects();" data-testid="project-activate">切替</button>'
+    +'<button class="pe-delete" onclick="deleteProject(\''+id+'\')" data-testid="project-delete">削除</button>'
+    +'<button class="pe-cancel" onclick="fetchProjects()" data-testid="project-cancel">閉じる</button>'
     +'</div></div>';
   document.getElementById('pe-name').focus();
 }
 function saveProject(id){
   var n=document.getElementById('pe-name').value.trim(),p=document.getElementById('pe-path').value.trim();
   if(!n)return;
-  fetch(API+'/api/projects/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:n,path:p})}).then(function(){fetchProjects();fetchLogs();});
+  fetch(API+'/api/projects/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:n,path:p})}).then(function(){fetchProjects();fetchLogs();}).catch(handleFetchError('SaveProject'));
+}
+// Phase 2-1: プロジェクト追加
+function showAddProject(){
+  var el=document.getElementById('projectList');
+  el.innerHTML='<div class="project-edit"><input type="text" id="pe-add-name" placeholder="\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u540D"><input type="text" id="pe-add-path" placeholder="/Users/you/projects/xxx"><div class="pe-buttons">'
+    +'<button class="pe-save" onclick="addProject()" data-testid="project-add-save">\u4FDD\u5B58</button>'
+    +'<button class="pe-cancel" onclick="fetchProjects()" data-testid="project-add-cancel">\u9589\u3058\u308B</button>'
+    +'</div></div>';
+  document.getElementById('pe-add-name').focus();
+}
+function addProject(){
+  var n=document.getElementById('pe-add-name').value.trim(),p=document.getElementById('pe-add-path').value.trim();
+  if(!n||!p)return;
+  fetch(API+'/api/projects',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:n,path:p})}).then(function(){fetchProjects();fetchLogs();}).catch(handleFetchError('AddProject'));
 }
 function editModel(id,name,layer,status){
   var el=document.getElementById('modelList');
-  el.innerHTML='<div class="model-edit"><input type="text" id="me-name" value="'+name+'" placeholder="モデル名">'
+  el.innerHTML='<div class="model-edit"><input type="text" id="me-name" value="'+name+'" placeholder="\u30E2\u30C7\u30EB\u540D">'
     +'<div style="display:flex;gap:4px"><select id="me-layer"><option value="1"'+(layer===1?' selected':'')+'>Layer 1</option><option value="2"'+(layer===2?' selected':'')+'>Layer 2</option><option value="3"'+(layer===3?' selected':'')+'>Layer 3</option><option value="4"'+(layer===4?' selected':'')+'>Layer 4</option></select>'
     +'<select id="me-status"><option value="active"'+(status==='active'?' selected':'')+'>active</option><option value="inactive"'+(status==='inactive'?' selected':'')+'>inactive</option><option value="experimental"'+(status==='experimental'?' selected':'')+'>experimental</option></select></div>'
     +'<div class="me-buttons">'
-    +'<button class="pe-save" onclick="saveModel(\''+id+'\')">保存</button>'
-    +'<button class="pe-activate" onclick="benchmarkModel(\''+id+'\')">ベンチ</button>'
-    +(status==='active'?'<button class="pe-delete" onclick="disableModel(\''+id+'\')">無効化</button>':'<button class="pe-activate" onclick="enableModel(\''+id+'\')">有効化</button>')
-    +'<button class="pe-cancel" onclick="fetchModels()">閉じる</button>'
+    +'<button class="pe-save" onclick="saveModel(\''+id+'\')" data-testid="model-save">\u4FDD\u5B58</button>'
+    +'<button class="pe-activate" onclick="benchmarkModel(\''+id+'\')" data-testid="model-bench">\u30D9\u30F3\u30C1</button>'
+    +(status==='active'?'<button class="pe-delete" onclick="disableModel(\''+id+'\')" data-testid="model-disable">\u7121\u52B9\u5316</button>':'<button class="pe-activate" onclick="enableModel(\''+id+'\')" data-testid="model-enable">\u6709\u52B9\u5316</button>')
+    +'<button class="pe-cancel" onclick="fetchModels()" data-testid="model-cancel">\u9589\u3058\u308B</button>'
     +'</div></div>';
 }
 function saveModel(id){
   var n=document.getElementById('me-name').value.trim(),l=parseInt(document.getElementById('me-layer').value),s=document.getElementById('me-status').value;
-  fetch(API+'/api/models/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:n,layer:l,status:s})}).then(function(){fetchModels();fetchLogs();});
+  fetch(API+'/api/models/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:n,layer:l,status:s})}).then(function(){fetchModels();fetchLogs();}).catch(handleFetchError('SaveModel'));
 }
-function enableModel(id){fetch(API+'/api/models/'+id+'/enable',{method:'POST'}).then(function(){fetchModels();});}
-function disableModel(id){fetch(API+'/api/models/'+id+'/disable',{method:'POST'}).then(function(){fetchModels();});}
-function benchmarkModel(id){fetch(API+'/api/models/'+id+'/benchmark',{method:'POST'}).then(function(){fetchModels();fetchLogs();});}
+function enableModel(id){fetch(API+'/api/models/'+id+'/enable',{method:'POST'}).then(function(){fetchModels();}).catch(handleFetchError('EnableModel'));}
+function disableModel(id){fetch(API+'/api/models/'+id+'/disable',{method:'POST'}).then(function(){fetchModels();}).catch(handleFetchError('DisableModel'));}
+function benchmarkModel(id){fetch(API+'/api/models/'+id+'/benchmark',{method:'POST'}).then(function(){fetchModels();fetchLogs();}).catch(handleFetchError('Benchmark'));}
 function showAddModel(){
   var el=document.getElementById('modelList');
-  el.innerHTML='<div class="model-edit"><input type="text" id="me-add-name" placeholder="モデル名（例: qwen3-7b）">'
-    +'<input type="text" id="me-add-path" placeholder="GGUFファイルパス">'
+  el.innerHTML='<div class="model-edit"><input type="text" id="me-add-name" placeholder="\u30E2\u30C7\u30EB\u540D\uFF08\u4F8B: qwen3-7b\uFF09">'
+    +'<input type="text" id="me-add-path" placeholder="GGUF\u30D5\u30A1\u30A4\u30EB\u30D1\u30B9">'
     +'<select id="me-add-layer"><option value="1">Layer 1</option><option value="2" selected>Layer 2</option><option value="3">Layer 3</option></select>'
-    +'<div class="me-buttons"><button class="pe-save" onclick="addModel()">追加</button><button class="pe-cancel" onclick="fetchModels()">閉じる</button></div></div>';
+    +'<div class="me-buttons"><button class="pe-save" onclick="addModel()" data-testid="model-add-save">\u8FFD\u52A0</button><button class="pe-cancel" onclick="fetchModels()" data-testid="model-add-cancel">\u9589\u3058\u308B</button></div></div>';
   document.getElementById('me-add-name').focus();
 }
 function addModel(){
   var n=document.getElementById('me-add-name').value.trim(),p=document.getElementById('me-add-path').value.trim(),l=parseInt(document.getElementById('me-add-layer').value);
   if(!n)return;
-  fetch(API+'/api/models',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:n,path:p,layer:l})}).then(function(){fetchModels();fetchLogs();});
+  fetch(API+'/api/models',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:n,path:p,layer:l})}).then(function(){fetchModels();fetchLogs();}).catch(handleFetchError('AddModel'));
 }
 function deleteProject(id){
-  if(!confirm('このプロジェクトを削除しますか？'))return;
-  fetch(API+'/api/projects/'+id,{method:'DELETE'}).then(function(){fetchProjects();fetchLogs();});
+  if(!confirm('\u3053\u306E\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u3092\u524A\u9664\u3057\u307E\u3059\u304B\uFF1F'))return;
+  fetch(API+'/api/projects/'+id,{method:'DELETE'}).then(function(){fetchProjects();fetchLogs();}).catch(handleFetchError('DeleteProject'));
 }
-function triggerIdle(){fetch(API+'/api/idle/resume',{method:'POST'}).then(function(){fetchLogs();});}
+// Phase 2-4: ToolBox追加・削除・実行
+function showAddToolbox(){
+  var el=document.getElementById('toolboxList');
+  el.innerHTML='<div class="model-edit"><input type="text" id="tb-add-name" placeholder="\u30C4\u30FC\u30EB\u540D">'
+    +'<input type="text" id="tb-add-desc" placeholder="\u8AAC\u660E">'
+    +'<textarea id="tb-add-script" placeholder="\u30B9\u30AF\u30EA\u30D7\u30C8\u5185\u5BB9" style="width:100%;height:60px;background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:4px;color:var(--text);font-size:10px;font-family:monospace;resize:vertical"></textarea>'
+    +'<div class="me-buttons"><button class="pe-save" onclick="addToolbox()" data-testid="toolbox-add-save">\u8FFD\u52A0</button><button class="pe-cancel" onclick="fetchToolbox()" data-testid="toolbox-add-cancel">\u9589\u3058\u308B</button></div></div>';
+  document.getElementById('tb-add-name').focus();
+}
+function addToolbox(){
+  var n=document.getElementById('tb-add-name').value.trim(),d=document.getElementById('tb-add-desc').value.trim(),s=document.getElementById('tb-add-script').value.trim();
+  if(!n||!s)return;
+  fetch(API+'/api/toolbox',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:n,description:d,script:s})}).then(function(){fetchToolbox();fetchLogs();}).catch(handleFetchError('AddToolbox'));
+}
+function executeToolbox(id){
+  fetch(API+'/api/toolbox/'+id+'/execute',{method:'POST'}).then(function(r){return r.json()}).then(function(res){
+    if(res&&res.result)showError('ToolBox\u5B9F\u884C\u7D50\u679C: '+res.result);
+    fetchLogs();
+  }).catch(handleFetchError('ExecuteToolbox'));
+}
+function deleteToolbox(id){
+  if(!confirm('\u3053\u306EToolBox\u3092\u524A\u9664\u3057\u307E\u3059\u304B\uFF1F'))return;
+  fetch(API+'/api/toolbox/'+id,{method:'DELETE'}).then(function(){fetchToolbox();fetchLogs();}).catch(handleFetchError('DeleteToolbox'));
+}
+function triggerIdle(){fetch(API+'/api/idle/resume',{method:'POST'}).then(function(){fetchLogs();}).catch(handleFetchError('TriggerIdle'));}
 // Settings
 function toggleSettings(){document.getElementById('settingsPanel').classList.toggle('open');}
 function applyFS(){
@@ -354,15 +478,32 @@ function loadFS(){
   document.getElementById('fsTask').value=d.t;document.getElementById('fsLog').value=d.l;document.getElementById('fsSidebar').value=d.s;document.getElementById('fsInput').value=d.i;applyFS();}catch(e){}
 }
 loadFS();
-var composing=false;
+// Phase 0-1: IME対応（compositionstart/end廃止、handleInputKeydown使用）
 document.getElementById('sendBtn').addEventListener('click',sendTask);
-document.getElementById('taskInput').addEventListener('compositionstart',function(){composing=true;});
-document.getElementById('taskInput').addEventListener('compositionend',function(){composing=false;});
-document.getElementById('taskInput').addEventListener('keydown',function(e){if(e.key==='Enter'&&!composing)sendTask();});
-function esc(s){if(!s)return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
-function pad(n){return n<10?'0'+n:''+n;}
+document.getElementById('taskInput').addEventListener('keydown',function(e){
+  handleInputKeydown(e, sendTask);
+});
+
+// Phase 2-8: ポーリング最適化（高頻度/低頻度を分離 + バックグラウンドタブ時停止）
+function startPolling(){
+  pollFast=setInterval(function(){fetchLogs();fetchStatus();fetchTasks();},3000);
+  pollSlow=setInterval(function(){fetchToolbox();fetchIdleHistory();},10000);
+}
+function stopPolling(){
+  if(pollFast){clearInterval(pollFast);pollFast=null;}
+  if(pollSlow){clearInterval(pollSlow);pollSlow=null;}
+}
+document.addEventListener('visibilitychange', function() {
+  if (document.hidden) {
+    stopPolling();
+  } else {
+    startPolling();
+    fetchStatus();fetchTasks();fetchLogs();
+  }
+});
+
 fetchStatus();fetchProjects();fetchModels();fetchToolbox();fetchTasks();fetchLogs();fetchIdleHistory();
-setInterval(function(){fetchLogs();fetchStatus();fetchTasks();fetchToolbox();fetchIdleHistory();},3000);
+startPolling();
 </script>
 </body>
 </html>

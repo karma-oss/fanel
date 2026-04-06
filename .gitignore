@@ -6,3 +6,5 @@ DerivedData/
 fanel_debug.log
 .env
 Package.resolved
+node_modules/
+test-results/
