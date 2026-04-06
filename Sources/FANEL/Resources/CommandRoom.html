@@ -216,7 +216,7 @@ function fetchTasks(){
         // Council概要
         h+='<div class="council-info"><span class="ci-label">Council</span> <span class="ci-row">c='+c.complexity+(c.progress_score>=0?' '+c.progress_score+'%':'')+' '+(c.consensus_reached?'合意':'未達')+'</span></div>';
       }
-      if(s==='waitingForUser'&&t.council_result&&t.council_result.questions_for_user&&t.council_result.questions_for_user.length){h+='<div class="question-box"><div class="q-text">'+esc(t.council_result.questions_for_user.join('\n'))+'</div><div class="q-input"><input type="text" id="answer-'+t.id+'" placeholder="回答..."><button onclick="answerTask(\''+t.id+'\')">回答</button></div></div>';}
+      if(s==='waitingForUser'&&t.council_result&&t.council_result.questions_for_user&&t.council_result.questions_for_user.length){h+='<div class="question-box"><div class="q-text">'+esc(t.council_result.questions_for_user.join('\n'))+'</div><div class="q-input"><input type="text" id="answer-'+t.id+'" placeholder="回答..." oncompositionstart="composing=true" oncompositionend="composing=false" onkeydown="if(event.key===\'Enter\'&&!composing)answerTask(\''+t.id+'\')"><button onclick="answerTask(\''+t.id+'\')">回答</button></div></div>';}
       h+='</div>';return h;
     }).join('');
   }).catch(function(){});
