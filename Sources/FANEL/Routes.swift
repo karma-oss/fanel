@@ -9,7 +9,11 @@ struct Routes {
             let html = CommandRoomHTML.content
             return Response(
                 status: .ok,
-                headers: ["Content-Type": "text/html; charset=utf-8"],
+                headers: [
+                    "Content-Type": "text/html; charset=utf-8",
+                    "Cache-Control": "no-cache, no-store, must-revalidate",
+                    "Pragma": "no-cache",
+                ],
                 body: .init(string: html)
             )
         }
