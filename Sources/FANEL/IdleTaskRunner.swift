@@ -10,6 +10,18 @@ actor IdleTaskRunner {
 
     private init() {}
 
+    // MARK: - Priority 0: ソースインデックス更新
+
+    func runSelfIndex() async -> String {
+        return await SelfIndexer.shared.indexSources()
+    }
+
+    // MARK: - Priority 0.5: セルフレビュー
+
+    func runSelfReview() async -> String {
+        return await SelfReviewer.shared.reviewAll()
+    }
+
     // MARK: - Priority 1: 新モデルの自動ベンチマーク
 
     func runPendingBenchmarks() async -> String {

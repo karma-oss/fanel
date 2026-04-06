@@ -117,6 +117,21 @@ main{flex:1;display:grid;grid-template-columns:220px 1fr;grid-template-rows:minm
 .setting-row input[type=range]{width:100%;accent-color:var(--accent)}
 .setting-row .val{float:right;font-size:11px;color:var(--accent)}
 .empty{color:var(--text-dim);text-align:center;padding:12px;font-size:11px}
+.self-summary{font-size:10px;padding:4px 0}
+.self-stat{display:flex;justify-content:space-between;padding:2px 0;color:var(--text-dim)}
+.self-stat .val{color:var(--text);font-weight:500}
+.self-roles{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}
+.self-role-tab{font-size:9px;padding:2px 6px;border-radius:3px;border:1px solid var(--border);background:var(--bg);color:var(--text-dim);cursor:pointer}
+.self-role-tab:hover{border-color:var(--accent);color:var(--text)}
+.self-role-tab.active{border-color:var(--accent);color:var(--accent);background:rgba(88,166,255,0.08)}
+.self-role-tab .count{font-size:8px;margin-left:2px;opacity:0.7}
+.self-issue{padding:3px 6px;border-radius:3px;margin-bottom:2px;background:var(--bg);font-size:9px;border-left:2px solid var(--text-dim)}
+.self-issue.critical{border-left-color:var(--red)}.self-issue.warning{border-left-color:var(--yellow)}.self-issue.info{border-left-color:var(--accent)}
+.self-issue .si-head{display:flex;justify-content:space-between}
+.self-issue .si-severity{font-size:8px;padding:0 3px;border-radius:2px}
+.si-severity.critical{background:rgba(248,81,73,0.15);color:var(--red)}.si-severity.warning{background:rgba(210,153,34,0.15);color:var(--yellow)}.si-severity.info{background:rgba(88,166,255,0.15);color:var(--accent)}
+.self-issue .si-msg{color:var(--text-dim);margin-top:1px}
+.self-issue .si-file{color:var(--text-dim);font-size:8px;opacity:0.7}
 </style>
 </head>
 <body>
@@ -156,7 +171,8 @@ main{flex:1;display:grid;grid-template-columns:220px 1fr;grid-template-rows:minm
     <div><h2>Projects <button onclick="showAddProject()" style="font-size:8px;padding:1px 5px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--accent);cursor:pointer;float:right">+追加</button></h2><div id="projectList"><div class="empty">...</div></div></div>
     <div><h2>Models <button onclick="showAddModel()" style="font-size:8px;padding:1px 5px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--accent);cursor:pointer;float:right">+追加</button></h2><div id="modelList"><div class="empty">...</div></div></div>
     <div><h2>ToolBox <button onclick="showAddToolbox()" style="font-size:8px;padding:1px 5px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--cyan);cursor:pointer;float:right">+追加</button></h2><div id="toolboxList"><div class="empty">なし</div></div></div>
-    <div><h2>Idle History</h2><div id="idleHistory"><div class="empty">なし</div></div><button onclick="triggerIdle()" style="margin-top:4px;font-size:9px;padding:2px 8px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--cyan);cursor:pointer">今すぐ実行</button></div>
+    <div><h2>&#129504; 自己認識 <button onclick="triggerSelfIndex()" style="font-size:8px;padding:1px 5px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--purple);cursor:pointer;float:right" data-testid="self-index-btn">更新</button></h2><div id="selfPanel"><div class="empty">未取得</div></div></div>
+    <div><h2>Idle History</h2><div id="idleHistory"><div class="empty">なし</div></div><button onclick="triggerIdle()" style="margin-top:4px;font-size:9px;padding:2px 8px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--cyan);cursor:pointer" data-testid="idle-trigger-btn">今すぐ実行</button></div>
   </aside>
   <div class="task-panel"><h2>Tasks</h2><div id="taskList"><div class="empty">タスクなし</div></div></div>
   <div class="content"><div class="logs" id="logArea"><div class="empty">ログなし</div></div></div>
@@ -470,6 +486,58 @@ function deleteToolbox(id){
   if(!confirm('\u3053\u306EToolBox\u3092\u524A\u9664\u3057\u307E\u3059\u304B\uFF1F'))return;
   fetch(API+'/api/toolbox/'+id,{method:'DELETE'}).then(function(){fetchToolbox();fetchLogs();}).catch(handleFetchError('DeleteToolbox'));
 }
+// Phase 8.1: 自己認識パネル
+var selfActiveRole='';
+function fetchSelfSummary(){
+  fetch(API+'/api/self/summary').then(function(r){return r.json()}).then(function(d){
+    markOnline();
+    var el=document.getElementById('selfPanel');
+    var html='<div class="self-summary">';
+    html+='<div class="self-stat"><span>ファイル数</span><span class="val">'+d.file_count+'</span></div>';
+    html+='<div class="self-stat"><span>総行数</span><span class="val">'+d.total_lines+'</span></div>';
+    html+='<div class="self-stat"><span>Issue数</span><span class="val">'+d.issue_count+'</span></div>';
+    if(d.last_indexed_at){html+='<div class="self-stat"><span>最終Index</span><span class="val">'+new Date(d.last_indexed_at).toLocaleTimeString()+'</span></div>';}
+    if(d.last_reviewed_at){html+='<div class="self-stat"><span>最終Review</span><span class="val">'+new Date(d.last_reviewed_at).toLocaleTimeString()+'</span></div>';}
+    html+='</div>';
+    // ロールタブ
+    if(d.roles&&d.roles.length){
+      html+='<div class="self-roles">';
+      html+='<span class="self-role-tab'+(selfActiveRole===''?' active':'')+'" onclick="selfActiveRole=\'\';fetchSelfIssues()" data-testid="self-role-all">全て<span class="count">'+d.issue_count+'</span></span>';
+      for(var i=0;i<d.roles.length;i++){
+        var r=d.roles[i],cls=selfActiveRole===r.role?' active':'';
+        html+='<span class="self-role-tab'+cls+'" onclick="selfActiveRole=\''+r.role+'\';fetchSelfIssues()" data-testid="self-role-'+r.role+'">'+esc(r.role)+'<span class="count">'+r.total+'</span></span>';
+      }
+      html+='</div>';
+    }
+    html+='<div id="selfIssues"></div>';
+    el.innerHTML=html;
+    if(d.issue_count>0)fetchSelfIssues();
+  }).catch(function(){});
+}
+function fetchSelfIssues(){
+  var url=API+'/api/self/issues';
+  if(selfActiveRole)url+='?role='+selfActiveRole;
+  fetch(url).then(function(r){return r.json()}).then(function(issues){
+    var el=document.getElementById('selfIssues');
+    if(!el)return;
+    if(!issues.length){el.innerHTML='<div class="empty">問題なし</div>';return;}
+    el.innerHTML=issues.slice(0,10).map(function(iss){
+      return'<div class="self-issue '+iss.severity+'"><div class="si-head"><span class="si-severity '+iss.severity+'">'+iss.severity+'</span><span class="si-file">'+esc(iss.file)+'</span></div><div class="si-msg">'+esc(iss.message)+'</div></div>';
+    }).join('');
+  }).catch(function(){});
+}
+function triggerSelfIndex(){
+  fetch(API+'/api/self/index',{method:'POST'}).then(function(){
+    fetchLogs();
+    setTimeout(fetchSelfSummary,3000);
+  }).catch(handleFetchError('SelfIndex'));
+}
+function triggerSelfReview(){
+  fetch(API+'/api/self/review',{method:'POST'}).then(function(){
+    fetchLogs();
+    setTimeout(fetchSelfSummary,10000);
+  }).catch(handleFetchError('SelfReview'));
+}
 function triggerIdle(){fetch(API+'/api/idle/resume',{method:'POST'}).then(function(){fetchLogs();}).catch(handleFetchError('TriggerIdle'));}
 // Settings
 function toggleSettings(){document.getElementById('settingsPanel').classList.toggle('open');}
@@ -499,7 +567,7 @@ document.getElementById('taskInput').addEventListener('keydown',function(e){
 // Phase 2-8: ポーリング最適化（高頻度/低頻度を分離 + バックグラウンドタブ時停止）
 function startPolling(){
   pollFast=setInterval(function(){fetchLogs();fetchStatus();fetchTasks();},3000);
-  pollSlow=setInterval(function(){fetchToolbox();fetchIdleHistory();},10000);
+  pollSlow=setInterval(function(){fetchToolbox();fetchIdleHistory();fetchSelfSummary();},10000);
 }
 function stopPolling(){
   if(pollFast){clearInterval(pollFast);pollFast=null;}
@@ -514,7 +582,7 @@ document.addEventListener('visibilitychange', function() {
   }
 });
 
-fetchStatus();fetchProjects();fetchModels();fetchToolbox();fetchTasks();fetchLogs();fetchIdleHistory();
+fetchStatus();fetchProjects();fetchModels();fetchToolbox();fetchTasks();fetchLogs();fetchIdleHistory();fetchSelfSummary();
 startPolling();
 </script>
 </body>

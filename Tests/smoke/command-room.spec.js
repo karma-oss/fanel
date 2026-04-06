@@ -134,6 +134,46 @@ async function setupMocks(page) {
   await page.route('**/api/idle/resume', async (route) => {
     await route.fulfill({ contentType: 'application/json', body: '{"ok":true}' });
   });
+
+  // /api/self/summary
+  await page.route('**/api/self/summary', async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({
+        file_count: 25,
+        total_lines: 3200,
+        issue_count: 3,
+        roles: [
+          { role: 'architect', critical: 0, warning: 1, info: 0, total: 1 },
+          { role: 'security', critical: 1, warning: 0, info: 0, total: 1 },
+          { role: 'performance', critical: 0, warning: 0, info: 1, total: 1 },
+        ],
+        last_indexed_at: new Date().toISOString(),
+        last_reviewed_at: new Date().toISOString(),
+      }),
+    });
+  });
+
+  // /api/self/issues
+  await page.route('**/api/self/issues**', async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify([
+        { id: 'i1', role: 'security', severity: 'critical', file: 'Routes.swift', line: 10, message: 'コマンドインジェクション可能性', suggestion: '入力を検証', timestamp: new Date().toISOString() },
+        { id: 'i2', role: 'architect', severity: 'warning', file: 'TaskOrchestrator.swift', line: null, message: '循環依存あり', suggestion: 'インターフェースを分離', timestamp: new Date().toISOString() },
+      ]),
+    });
+  });
+
+  // /api/self/index
+  await page.route('**/api/self/index', async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: '{"ok":true,"message":"indexing started"}' });
+  });
+
+  // /api/self/review
+  await page.route('**/api/self/review', async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: '{"ok":true,"message":"full review started"}' });
+  });
 }
 
 test.describe('CommandRoom 指令室', () => {
@@ -363,6 +403,44 @@ test.describe('CommandRoom 指令室', () => {
   // ========================================
   // data-testid 付与チェック
   // ========================================
+
+  // ========================================
+  // Phase 8.1: 自己認識パネル
+  // ========================================
+
+  test('Phase 8.1: self panel shows summary stats', async ({ page }) => {
+    // selfSummaryのfetchを待つ
+    await page.waitForSelector('.self-summary', { timeout: 5000 });
+    const fileCount = await page.locator('.self-stat .val').first().textContent();
+    expect(fileCount).toBe('25');
+  });
+
+  test('Phase 8.1: self panel shows role tabs', async ({ page }) => {
+    await page.waitForSelector('.self-roles', { timeout: 5000 });
+    await expect(page.locator('[data-testid="self-role-all"]')).toBeVisible();
+    await expect(page.locator('[data-testid="self-role-architect"]')).toBeVisible();
+    await expect(page.locator('[data-testid="self-role-security"]')).toBeVisible();
+    await expect(page.locator('[data-testid="self-role-performance"]')).toBeVisible();
+  });
+
+  test('Phase 8.1: self panel shows issues', async ({ page }) => {
+    await page.waitForSelector('.self-issue', { timeout: 5000 });
+    const issues = page.locator('.self-issue');
+    expect(await issues.count()).toBeGreaterThan(0);
+    // critical severity issue exists
+    await expect(page.locator('.self-issue.critical')).toBeVisible();
+  });
+
+  test('Phase 8.1: self index button exists and triggers API', async ({ page }) => {
+    var indexCalled = false;
+    await page.route('**/api/self/index', async (route) => {
+      indexCalled = true;
+      await route.fulfill({ contentType: 'application/json', body: '{"ok":true}' });
+    });
+    await page.locator('[data-testid="self-index-btn"]').click();
+    await page.waitForTimeout(500);
+    expect(indexCalled).toBe(true);
+  });
 
   test('interactive elements have data-testid attributes', async ({ page }) => {
     // 回答入力欄
