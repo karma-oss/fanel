@@ -22,7 +22,13 @@ actor IdleTaskRunner {
         return await SelfReviewer.shared.reviewAll()
     }
 
-    // MARK: - Priority 1: 新モデルの自動ベンチマーク
+    // MARK: - Priority 1: 自己進化サイクル
+
+    func runSelfEvolution() async -> String {
+        return await SelfEvolutionOrchestrator.shared.runEvolutionCycle()
+    }
+
+    // MARK: - Priority 2: 新モデルの自動ベンチマーク
 
     func runPendingBenchmarks() async -> String {
         let models = await ModelRegistry.shared.allModels()

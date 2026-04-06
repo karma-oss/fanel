@@ -132,6 +132,14 @@ main{flex:1;display:grid;grid-template-columns:220px 1fr;grid-template-rows:minm
 .si-severity.critical{background:rgba(248,81,73,0.15);color:var(--red)}.si-severity.warning{background:rgba(210,153,34,0.15);color:var(--yellow)}.si-severity.info{background:rgba(88,166,255,0.15);color:var(--accent)}
 .self-issue .si-msg{color:var(--text-dim);margin-top:1px}
 .self-issue .si-file{color:var(--text-dim);font-size:8px;opacity:0.7}
+.patch-item{padding:3px 6px;border-radius:3px;margin-bottom:2px;background:var(--bg);font-size:9px;border-left:2px solid var(--text-dim)}
+.patch-item.pushed{border-left-color:var(--green)}.patch-item.buildFailed{border-left-color:var(--red)}.patch-item.skipped{border-left-color:var(--text-dim)}
+.patch-item .pi-head{display:flex;justify-content:space-between}
+.patch-item .pi-status{font-size:8px;padding:0 3px;border-radius:2px}
+.pi-status.pushed{background:rgba(63,185,80,0.15);color:var(--green)}.pi-status.buildFailed{background:rgba(248,81,73,0.15);color:var(--red)}.pi-status.skipped{background:rgba(139,148,158,0.15);color:var(--text-dim)}
+.patch-item .pi-file{color:var(--text-dim)}.patch-item .pi-branch{color:var(--accent);font-size:8px;opacity:0.8}
+.evo-status{font-size:10px;padding:4px 0}
+.evo-phase{font-size:9px;padding:1px 5px;border-radius:3px;background:rgba(188,140,255,0.1);color:var(--purple);font-weight:500}
 </style>
 </head>
 <body>
@@ -172,6 +180,7 @@ main{flex:1;display:grid;grid-template-columns:220px 1fr;grid-template-rows:minm
     <div><h2>Models <button onclick="showAddModel()" style="font-size:8px;padding:1px 5px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--accent);cursor:pointer;float:right">+追加</button></h2><div id="modelList"><div class="empty">...</div></div></div>
     <div><h2>ToolBox <button onclick="showAddToolbox()" style="font-size:8px;padding:1px 5px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--cyan);cursor:pointer;float:right">+追加</button></h2><div id="toolboxList"><div class="empty">なし</div></div></div>
     <div><h2>&#129504; 自己認識 <button onclick="triggerSelfIndex()" style="font-size:8px;padding:1px 5px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--purple);cursor:pointer;float:right" data-testid="self-index-btn">更新</button></h2><div id="selfPanel"><div class="empty">未取得</div></div></div>
+    <div><h2>&#128295; 自己修正 <button onclick="triggerEvolution()" style="font-size:8px;padding:1px 5px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--orange);cursor:pointer;float:right" data-testid="evolution-btn">進化実行</button></h2><div id="patchPanel"><div class="empty">未実行</div></div></div>
     <div><h2>Idle History</h2><div id="idleHistory"><div class="empty">なし</div></div><button onclick="triggerIdle()" style="margin-top:4px;font-size:9px;padding:2px 8px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--cyan);cursor:pointer" data-testid="idle-trigger-btn">今すぐ実行</button></div>
   </aside>
   <div class="task-panel"><h2>Tasks</h2><div id="taskList"><div class="empty">タスクなし</div></div></div>
@@ -538,6 +547,39 @@ function triggerSelfReview(){
     setTimeout(fetchSelfSummary,10000);
   }).catch(handleFetchError('SelfReview'));
 }
+// Phase 8.2: 自己修正パネル
+function fetchPatches(){
+  fetch(API+'/api/self/patches').then(function(r){return r.json()}).then(function(patches){
+    var el=document.getElementById('patchPanel');
+    if(!patches.length){el.innerHTML='<div class="empty">パッチなし</div>';return;}
+    el.innerHTML=patches.slice(0,8).map(function(p){
+      var branchHtml=p.branch?'<div class="pi-branch">'+esc(p.branch)+'</div>':'';
+      return'<div class="patch-item '+p.status+'"><div class="pi-head"><span class="pi-file">'+esc(p.file)+'</span><span class="pi-status '+p.status+'">'+p.status+'</span></div><div style="color:var(--text-dim)">'+esc(p.message).substring(0,60)+'</div>'+branchHtml+'</div>';
+    }).join('');
+  }).catch(function(){});
+}
+function fetchEvolutionStatus(){
+  fetch(API+'/api/self/evolution').then(function(r){return r.json()}).then(function(d){
+    var panel=document.getElementById('patchPanel');
+    if(!panel)return;
+    // 進化ステータスをパッチリストの前に表示
+    var existing=document.getElementById('evoStatus');
+    if(existing)existing.remove();
+    if(d.is_running||d.patches_applied>0){
+      var div=document.createElement('div');
+      div.id='evoStatus';
+      div.className='evo-status';
+      div.innerHTML=d.is_running?'<span class="evo-phase">'+esc(d.current_phase)+'</span> 実行中...':'適用:'+d.patches_applied+' 失敗:'+d.patches_failed+' スキップ:'+d.patches_skipped;
+      panel.insertBefore(div,panel.firstChild);
+    }
+  }).catch(function(){});
+}
+function triggerEvolution(){
+  fetch(API+'/api/self/evolution/run',{method:'POST'}).then(function(){
+    fetchLogs();
+    setTimeout(function(){fetchPatches();fetchEvolutionStatus();},5000);
+  }).catch(handleFetchError('Evolution'));
+}
 function triggerIdle(){fetch(API+'/api/idle/resume',{method:'POST'}).then(function(){fetchLogs();}).catch(handleFetchError('TriggerIdle'));}
 // Settings
 function toggleSettings(){document.getElementById('settingsPanel').classList.toggle('open');}
@@ -567,7 +609,7 @@ document.getElementById('taskInput').addEventListener('keydown',function(e){
 // Phase 2-8: ポーリング最適化（高頻度/低頻度を分離 + バックグラウンドタブ時停止）
 function startPolling(){
   pollFast=setInterval(function(){fetchLogs();fetchStatus();fetchTasks();},3000);
-  pollSlow=setInterval(function(){fetchToolbox();fetchIdleHistory();fetchSelfSummary();},10000);
+  pollSlow=setInterval(function(){fetchToolbox();fetchIdleHistory();fetchSelfSummary();fetchPatches();fetchEvolutionStatus();},10000);
 }
 function stopPolling(){
   if(pollFast){clearInterval(pollFast);pollFast=null;}
@@ -582,7 +624,7 @@ document.addEventListener('visibilitychange', function() {
   }
 });
 
-fetchStatus();fetchProjects();fetchModels();fetchToolbox();fetchTasks();fetchLogs();fetchIdleHistory();fetchSelfSummary();
+fetchStatus();fetchProjects();fetchModels();fetchToolbox();fetchTasks();fetchLogs();fetchIdleHistory();fetchSelfSummary();fetchPatches();fetchEvolutionStatus();
 startPolling();
 </script>
 </body>

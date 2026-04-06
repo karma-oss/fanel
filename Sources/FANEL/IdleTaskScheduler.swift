@@ -56,6 +56,7 @@ actor IdleTaskScheduler {
         let tasks: [(name: String, run: () async -> String)] = [
             ("ソースインデックス", { await IdleTaskRunner.shared.runSelfIndex() }),
             ("セルフレビュー", { await IdleTaskRunner.shared.runSelfReview() }),
+            ("自己進化サイクル", { await IdleTaskRunner.shared.runSelfEvolution() }),
             ("新モデルベンチマーク", { await IdleTaskRunner.shared.runPendingBenchmarks() }),
             ("ToolBoxスクリプト生成", { await IdleTaskRunner.shared.generateMissingScripts() }),
             ("コード改善提案", { await IdleTaskRunner.shared.generateImprovementSuggestions() }),

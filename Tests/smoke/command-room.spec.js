@@ -174,6 +174,42 @@ async function setupMocks(page) {
   await page.route('**/api/self/review', async (route) => {
     await route.fulfill({ contentType: 'application/json', body: '{"ok":true,"message":"full review started"}' });
   });
+
+  // /api/self/patches
+  await page.route('**/api/self/patches', async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify([
+        { id: 'p1', issue_id: 'i1', role: 'security', file: 'Routes.swift', message: 'コマンドインジェクション修正', status: 'pushed', branch: 'fanel/self-improve-20260407', diff_summary: '1 file changed', build_log: null, pushed_at: new Date().toISOString(), created_at: new Date().toISOString() },
+        { id: 'p2', issue_id: 'i2', role: 'readability', file: 'TaskStore.swift', message: '長い関数の分割', status: 'buildFailed', branch: null, diff_summary: null, build_log: 'build failed', pushed_at: null, created_at: new Date().toISOString() },
+      ]),
+    });
+  });
+
+  // /api/self/evolution
+  await page.route('**/api/self/evolution', async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({
+        is_running: false,
+        current_phase: 'idle',
+        patches_applied: 1,
+        patches_failed: 1,
+        patches_skipped: 0,
+        last_cycle_at: new Date().toISOString(),
+      }),
+    });
+  });
+
+  // /api/self/evolution/run
+  await page.route('**/api/self/evolution/run', async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: '{"ok":true,"message":"evolution cycle started"}' });
+  });
+
+  // /api/self/patch/:id
+  await page.route('**/api/self/patch/*', async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: '{"ok":true,"message":"patching started"}' });
+  });
 }
 
 test.describe('CommandRoom 指令室', () => {
@@ -440,6 +476,41 @@ test.describe('CommandRoom 指令室', () => {
     await page.locator('[data-testid="self-index-btn"]').click();
     await page.waitForTimeout(500);
     expect(indexCalled).toBe(true);
+  });
+
+  // ========================================
+  // Phase 8.2: 自己修正パネル
+  // ========================================
+
+  test('Phase 8.2: patch panel shows patch history', async ({ page }) => {
+    await page.waitForSelector('.patch-item', { timeout: 5000 });
+    const patches = page.locator('.patch-item');
+    expect(await patches.count()).toBeGreaterThan(0);
+    await expect(page.locator('.patch-item.pushed')).toBeVisible();
+  });
+
+  test('Phase 8.2: patch panel shows branch name for pushed patches', async ({ page }) => {
+    await page.waitForSelector('.pi-branch', { timeout: 5000 });
+    const branchText = await page.locator('.pi-branch').first().textContent();
+    expect(branchText).toContain('fanel/self-improve');
+  });
+
+  test('Phase 8.2: evolution button triggers API call', async ({ page }) => {
+    var evoCalled = false;
+    await page.route('**/api/self/evolution/run', async (route) => {
+      evoCalled = true;
+      await route.fulfill({ contentType: 'application/json', body: '{"ok":true}' });
+    });
+    await page.locator('[data-testid="evolution-btn"]').click();
+    await page.waitForTimeout(500);
+    expect(evoCalled).toBe(true);
+  });
+
+  test('Phase 8.2: evolution status is displayed', async ({ page }) => {
+    // evoStatusが表示される（patches_applied>0のため）
+    await page.waitForSelector('#evoStatus', { timeout: 5000 });
+    const statusText = await page.locator('#evoStatus').textContent();
+    expect(statusText).toContain('適用:1');
   });
 
   test('interactive elements have data-testid attributes', async ({ page }) => {

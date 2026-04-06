@@ -541,6 +541,51 @@ struct Routes {
                 return Response(status: .accepted, body: .init(string: "{\"ok\":true,\"message\":\"full review started\"}"))
             }
         }
+
+        // MARK: - Self-Patch / Evolution API
+
+        // GET /api/self/patches → パッチ履歴
+        app.get("api", "self", "patches") { req async throws -> Response in
+            let patches = await SelfPatcher.shared.recentPatches(20)
+            let encoder = JSONEncoder()
+            encoder.keyEncodingStrategy = .convertToSnakeCase
+            encoder.dateEncodingStrategy = .iso8601
+            let data = try encoder.encode(patches)
+            return Response(status: .ok, headers: ["Content-Type": "application/json"], body: .init(data: data))
+        }
+
+        // POST /api/self/patch/:issueId → 特定Issueを修正してpush
+        app.post("api", "self", "patch", ":issueId") { req async throws -> Response in
+            guard let idStr = req.parameters.get("issueId"),
+                  let issueId = UUID(uuidString: idStr) else {
+                throw Abort(.badRequest, reason: "Invalid issue ID")
+            }
+            let issues = await SelfKnowledgeDB.shared.allIssues()
+            guard let issue = issues.first(where: { $0.id == issueId }) else {
+                throw Abort(.notFound, reason: "Issue not found")
+            }
+            Task {
+                let result = await SelfPatcher.shared.patch(issue: issue)
+                await LogStore.shared.info("[API] パッチ結果: \(result.status.rawValue) — \(result.file)")
+            }
+            return Response(status: .accepted, body: .init(string: "{\"ok\":true,\"message\":\"patching started\"}"))
+        }
+
+        // GET /api/self/evolution → 自己進化サイクル状態
+        app.get("api", "self", "evolution") { req async throws -> Response in
+            let status = await SelfEvolutionOrchestrator.shared.status()
+            let encoder = JSONEncoder()
+            encoder.keyEncodingStrategy = .convertToSnakeCase
+            encoder.dateEncodingStrategy = .iso8601
+            let data = try encoder.encode(status)
+            return Response(status: .ok, headers: ["Content-Type": "application/json"], body: .init(data: data))
+        }
+
+        // POST /api/self/evolution/run → 今すぐ自己進化サイクル実行
+        app.post("api", "self", "evolution", "run") { req async throws -> Response in
+            Task { await SelfEvolutionOrchestrator.shared.runEvolutionCycle() }
+            return Response(status: .accepted, body: .init(string: "{\"ok\":true,\"message\":\"evolution cycle started\"}"))
+        }
     }
 
     private static func jsonResponse(_ envelope: TaskEnvelope) throws -> Response {
