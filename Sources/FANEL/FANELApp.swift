@@ -31,6 +31,7 @@ final class FANELAppDelegate: NSObject, NSApplicationDelegate {
         // サーバー自動起動 + ModelRegistry監視開始
         Task {
             await LogStore.shared.info("FANEL 起動")
+            await ProjectStore.shared.load()
             await ToolBoxStore.shared.load()
             await ModelRegistry.shared.startMonitoring()
             await TailscaleManager.shared.startPolling()

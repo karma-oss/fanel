@@ -88,8 +88,9 @@ actor ClaudeProcessManager {
         process.executableURL = URL(fileURLWithPath: claudePath)
         process.arguments = ["--print", prompt]
 
-        // 作業ディレクトリをプロジェクトルートに設定
-        let projectRoot = FileManager.default.currentDirectoryPath
+        // 作業ディレクトリをアクティブプロジェクトに設定
+        let activeProject = await ProjectStore.shared.activeProject()
+        let projectRoot = activeProject?.path ?? FileManager.default.currentDirectoryPath
         process.currentDirectoryURL = URL(fileURLWithPath: projectRoot)
 
         let stdoutPipe = Pipe()

@@ -48,35 +48,52 @@ struct Routes {
             )
         }
 
-        // GET /api/projects → ダミープロジェクト一覧
+        // GET /api/projects → プロジェクト一覧
         app.get("api", "projects") { req async throws -> Response in
-            let projects: [[String: Any]] = [
-                [
-                    "id": UUID().uuidString,
-                    "name": "FANEL",
-                    "path": "/Users/tanimura/Desktop/FANAL",
-                    "status": "active",
-                    "last_activity": ISO8601DateFormatter().string(from: Date())
-                ],
-                [
-                    "id": UUID().uuidString,
-                    "name": "SampleProject",
-                    "path": "/Users/tanimura/Projects/sample",
-                    "status": "idle",
-                    "last_activity": ISO8601DateFormatter().string(
-                        from: Date().addingTimeInterval(-3600)
-                    )
-                ]
-            ]
-            let data = try JSONSerialization.data(
-                withJSONObject: projects,
-                options: [.prettyPrinted, .sortedKeys]
-            )
-            return Response(
-                status: .ok,
-                headers: ["Content-Type": "application/json"],
-                body: .init(data: data)
-            )
+            let projects = await ProjectStore.shared.list()
+            let encoder = JSONEncoder()
+            encoder.keyEncodingStrategy = .convertToSnakeCase
+            encoder.dateEncodingStrategy = .iso8601
+            let data = try encoder.encode(projects)
+            return Response(status: .ok, headers: ["Content-Type": "application/json"], body: .init(data: data))
+        }
+
+        // POST /api/projects → プロジェクト追加
+        app.post("api", "projects") { req async throws -> Response in
+            struct AddRequest: Content {
+                let name: String
+                let path: String
+            }
+            let r = try req.content.decode(AddRequest.self)
+            let project = await ProjectStore.shared.add(name: r.name, path: r.path)
+            await LogStore.shared.info("プロジェクト追加: \(project.name)")
+            let encoder = JSONEncoder()
+            encoder.keyEncodingStrategy = .convertToSnakeCase
+            encoder.dateEncodingStrategy = .iso8601
+            let data = try encoder.encode(project)
+            return Response(status: .created, headers: ["Content-Type": "application/json"], body: .init(data: data))
+        }
+
+        // DELETE /api/projects/:id → プロジェクト削除
+        app.delete("api", "projects", ":projectId") { req async throws -> Response in
+            guard let idStr = req.parameters.get("projectId"),
+                  let id = UUID(uuidString: idStr) else {
+                throw Abort(.badRequest, reason: "Invalid project ID")
+            }
+            await ProjectStore.shared.remove(id: id)
+            return Response(status: .ok, body: .init(string: "{\"ok\":true}"))
+        }
+
+        // POST /api/projects/:id/activate → アクティブ切替
+        app.post("api", "projects", ":projectId", "activate") { req async throws -> Response in
+            guard let idStr = req.parameters.get("projectId"),
+                  let id = UUID(uuidString: idStr) else {
+                throw Abort(.badRequest, reason: "Invalid project ID")
+            }
+            await ProjectStore.shared.activate(id: id)
+            let name = await ProjectStore.shared.get(id: id)?.name ?? ""
+            await LogStore.shared.info("プロジェクト切替: \(name)")
+            return Response(status: .ok, body: .init(string: "{\"ok\":true}"))
         }
 
         // POST /api/tasks → Council→WorkerPool経由でタスク送信（オーナーのみ）
