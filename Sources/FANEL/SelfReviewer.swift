@@ -1,12 +1,13 @@
 import Foundation
 import os
 
-/// 7つのレビュー観点でコードを自己レビューするActor
+/// 7つのレビュー観点でコードを自己レビューするActor（Claude Code経由）
 actor SelfReviewer {
 
     static let shared = SelfReviewer()
 
     private let logger = Logger(subsystem: "com.fanel", category: "SelfReviewer")
+    private var claudeManager: ClaudeProcessManager?
 
     /// レビューロール定義
     struct ReviewRole: Sendable {
@@ -111,12 +112,26 @@ actor SelfReviewer {
 
     private init() {}
 
+    // MARK: - Claude初期化
+
+    private func ensureClaude() async -> ClaudeProcessManager? {
+        if claudeManager == nil {
+            do {
+                claudeManager = try await ClaudeProcessManager(timeoutSeconds: 120, maxRetries: 1)
+            } catch {
+                await LogStore.shared.error("[SelfReview] Claude初期化失敗: \(error)")
+                return nil
+            }
+        }
+        return claudeManager
+    }
+
     // MARK: - 全ロールレビュー
 
-    /// 全7ロールでレビューを実行（Hayabusaローカルモデル使用 = コスト0）
+    /// 全7ロールでレビューを実行（Claude Code経由）
     func reviewAll() async -> String {
-        guard await HayabusaClient.shared.isAvailable() else {
-            return "Hayabusa未起動 — レビュースキップ"
+        guard let claude = await ensureClaude() else {
+            return "Claude Code未検出 — レビュースキップ"
         }
 
         let units = await SelfKnowledgeDB.shared.allUnits()
@@ -124,21 +139,15 @@ actor SelfReviewer {
             return "インデックス未構築 — 先にindexSourcesを実行してください"
         }
 
-        // コードの要約を作成（プロンプトに含める）
         let codeSummary = buildCodeSummary(units: units)
         var allIssues: [ReviewIssue] = []
-
-        let models = await ModelRegistry.shared.allModels()
-        guard let model = models.first(where: { $0.layer <= 3 && $0.status == .active }) else {
-            return "利用可能なローカルモデルなし"
-        }
 
         for role in Self.roles {
             if Task.isCancelled { return "中断 (完了: \(allIssues.count)件)" }
 
             await LogStore.shared.info("[SelfReview] \(role.label) レビュー開始")
 
-            let issues = await reviewWithRole(role: role, codeSummary: codeSummary, modelName: model.name)
+            let issues = await reviewWithRole(role: role, codeSummary: codeSummary, claude: claude)
             allIssues.append(contentsOf: issues)
 
             await LogStore.shared.info("[SelfReview] \(role.label): \(issues.count)件検出")
@@ -152,29 +161,30 @@ actor SelfReviewer {
 
     func reviewWithRole(roleName: String) async -> [ReviewIssue] {
         guard let role = Self.roles.first(where: { $0.name == roleName }) else { return [] }
-        guard await HayabusaClient.shared.isAvailable() else { return [] }
+        guard let claude = await ensureClaude() else { return [] }
 
         let units = await SelfKnowledgeDB.shared.allUnits()
         let codeSummary = buildCodeSummary(units: units)
 
-        let models = await ModelRegistry.shared.allModels()
-        guard let model = models.first(where: { $0.layer <= 3 && $0.status == .active }) else { return [] }
-
-        return await reviewWithRole(role: role, codeSummary: codeSummary, modelName: model.name)
+        return await reviewWithRole(role: role, codeSummary: codeSummary, claude: claude)
     }
 
     // MARK: - Internal
 
-    private func reviewWithRole(role: ReviewRole, codeSummary: String, modelName: String) async -> [ReviewIssue] {
+    private func reviewWithRole(role: ReviewRole, codeSummary: String, claude: ClaudeProcessManager) async -> [ReviewIssue] {
         let prompt = """
         \(role.prompt)
 
         対象コードの構造:
         \(codeSummary)
+
+        回答はJSON配列のみ出力してください。マーカーやコードブロックは不要です。
+        例: [{"severity":"warning","file":"Routes.swift","message":"問題の説明","suggestion":"修正案"}]
+        問題なければ: []
         """
 
         do {
-            let raw = try await HayabusaClient.shared.complete(model: modelName, prompt: prompt)
+            let raw = try await claude.send(prompt: prompt)
             return parseReviewResponse(raw: raw, role: role.name)
         } catch {
             logger.error("[SelfReview] \(role.name) failed: \(error.localizedDescription)")
@@ -202,7 +212,6 @@ actor SelfReviewer {
            let endRange = raw.range(of: "[FANEL_RESPONSE_END]") {
             jsonStr = String(raw[beginRange.upperBound..<endRange.lowerBound])
                 .trimmingCharacters(in: .whitespacesAndNewlines)
-            // envelope内のmessageフィールドからJSON配列を探す
             if let data = jsonStr.data(using: .utf8),
                let envelope = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                let message = envelope["message"] as? String {

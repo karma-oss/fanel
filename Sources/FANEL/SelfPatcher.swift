@@ -30,7 +30,7 @@ struct PatchResult: Codable, Sendable {
     }
 }
 
-/// 自己修正を実行しGitにpushするActor
+/// 自己修正を実行しGitにpushするActor（Claude Code経由）
 actor SelfPatcher {
 
     static let shared = SelfPatcher()
@@ -39,6 +39,7 @@ actor SelfPatcher {
     private var patchHistory: [PatchResult] = []
     private let maxHistory = 50
     private let maxPatchesPerCycle = 3
+    private var claudeManager: ClaudeProcessManager?
 
     /// 修正禁止ファイル
     private let protectedFiles: Set<String> = [
@@ -206,17 +207,26 @@ actor SelfPatcher {
 
     // MARK: - Internal
 
-    private func generateAndApplyPatch(issue: ReviewIssue, projectRoot: String) async -> Bool {
-        guard await HayabusaClient.shared.isAvailable() else { return false }
+    private func ensureClaude() async -> ClaudeProcessManager? {
+        if claudeManager == nil {
+            do {
+                claudeManager = try await ClaudeProcessManager(timeoutSeconds: 120, maxRetries: 1)
+            } catch {
+                await LogStore.shared.error("[SelfPatch] Claude初期化失敗: \(error)")
+                return nil
+            }
+        }
+        return claudeManager
+    }
 
-        let models = await ModelRegistry.shared.allModels()
-        guard let model = models.first(where: { $0.layer <= 3 && $0.status == .active }) else { return false }
+    private func generateAndApplyPatch(issue: ReviewIssue, projectRoot: String) async -> Bool {
+        guard let claude = await ensureClaude() else { return false }
 
         let filePath = "\(projectRoot)/Sources/FANEL/\(issue.file)"
         guard let currentCode = try? String(contentsOfFile: filePath, encoding: .utf8) else { return false }
 
-        // 対象ファイルが大きすぎる場合はスキップ（プロンプトに収まらない）
-        guard currentCode.count < 8000 else {
+        // 対象ファイルが大きすぎる場合はスキップ
+        guard currentCode.count < 15000 else {
             await LogStore.shared.info("[SelfPatch] ファイルが大きすぎるためスキップ: \(issue.file)")
             return false
         }
@@ -238,22 +248,10 @@ actor SelfPatcher {
         """
 
         do {
-            let result = try await HayabusaClient.shared.complete(model: model.name, prompt: prompt)
+            let result = try await claude.send(prompt: prompt)
 
-            // FANEL_RESPONSE マーカーがある場合はmessage内のコードを抽出
+            // コードブロックを除去
             var code = result
-            if let beginRange = result.range(of: "[FANEL_RESPONSE_BEGIN]"),
-               let endRange = result.range(of: "[FANEL_RESPONSE_END]") {
-                let envelope = String(result[beginRange.upperBound..<endRange.lowerBound])
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-                if let data = envelope.data(using: .utf8),
-                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                   let msg = json["message"] as? String {
-                    code = msg
-                }
-            }
-
-            // ```swift ... ``` を除去
             if let startRange = code.range(of: "```swift\n"),
                let endRange = code.range(of: "\n```", options: .backwards) {
                 code = String(code[startRange.upperBound..<endRange.lowerBound])
