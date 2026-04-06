@@ -194,6 +194,9 @@ function fetchToolbox(){
 }
 function statusLabel(s){return{draft:'Draft',waitingForCouncil:'会議中',waitingForUser:'回答待',running:'実行中',complete:'完了',error:'エラー',waiting:'待機'}[s]||s;}
 function fetchTasks(){
+  // 回答欄にフォーカスがある場合は再描画スキップ（入力中のテキストが消えるのを防止）
+  var ae=document.activeElement;
+  if(ae&&ae.id&&ae.id.indexOf('answer-')===0)return;
   fetch(API+'/api/tasks').then(function(r){return r.json()}).then(function(tasks){
     var el=document.getElementById('taskList');
     if(!tasks.length){el.innerHTML='<div class="empty">タスクなし</div>';return;}
