@@ -6,7 +6,7 @@
 <title>FANEL 指令室</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0d1117;--surface:#161b22;--border:#30363d;--text:#e6edf3;--text-dim:#8b949e;--accent:#58a6ff;--green:#3fb950;--red:#f85149;--yellow:#d29922;--purple:#bc8cff;--orange:#f0883e;--cyan:#39d353}
+:root{--bg:#0d1117;--surface:#161b22;--border:#30363d;--text:#e6edf3;--text-dim:#8b949e;--accent:#58a6ff;--green:#3fb950;--red:#f85149;--yellow:#d29922;--purple:#bc8cff;--orange:#f0883e;--cyan:#39d353;--fs-base:12px;--fs-task:11px;--fs-log:10px;--fs-sidebar:10px}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
 header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
 header h1{font-size:16px;font-weight:600}
@@ -20,7 +20,7 @@ header h1{font-size:16px;font-weight:600}
 .tb-badge{font-size:10px;padding:1px 6px;border-radius:3px;background:rgba(57,211,83,0.15);color:var(--cyan)}
 main{flex:1;display:grid;grid-template-columns:220px 1fr;grid-template-rows:auto 1fr auto;gap:0;overflow:hidden}
 @media(max-width:768px){main{grid-template-columns:1fr;grid-template-rows:auto auto auto 1fr auto}.sidebar{grid-row:auto}}
-.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:10px;overflow-y:auto;grid-row:1/3;display:flex;flex-direction:column;gap:12px;font-size:12px}
+.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:10px;overflow-y:auto;grid-row:1/3;display:flex;flex-direction:column;gap:12px;font-size:var(--fs-sidebar)}
 .sidebar h2{font-size:10px;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;letter-spacing:0.5px}
 .project-item{padding:6px 8px;border-radius:4px;margin-bottom:2px;cursor:pointer}
 .project-item:hover{background:var(--border)}
@@ -39,7 +39,7 @@ main{flex:1;display:grid;grid-template-columns:220px 1fr;grid-template-rows:auto
 .tb-item .tb-desc{color:var(--text-dim);font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .task-panel{border-bottom:1px solid var(--border);max-height:200px;overflow-y:auto;padding:8px 12px}
 .task-panel h2{font-size:10px;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px;letter-spacing:0.5px}
-.task-item{padding:6px 8px;border-radius:4px;margin-bottom:4px;background:var(--surface);border-left:3px solid var(--text-dim);font-size:11px}
+.task-item{padding:6px 8px;border-radius:4px;margin-bottom:4px;background:var(--surface);border-left:3px solid var(--text-dim);font-size:var(--fs-task)}
 .task-item.running{border-left-color:var(--yellow)}.task-item.complete{border-left-color:var(--green)}.task-item.error{border-left-color:var(--red)}.task-item.waiting,.task-item.draft{border-left-color:var(--accent)}.task-item.waitingForCouncil{border-left-color:var(--purple)}.task-item.waitingForUser{border-left-color:var(--yellow)}
 .task-item .task-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
 .task-item .task-goal{font-weight:500;font-size:11px}
@@ -56,7 +56,7 @@ main{flex:1;display:grid;grid-template-columns:220px 1fr;grid-template-rows:auto
 .question-box input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:3px 6px;color:var(--text);font-size:10px;outline:none}
 .question-box button{font-size:9px;padding:3px 8px;border-radius:3px;border:none;cursor:pointer;background:var(--yellow);color:#000;font-weight:500}
 .content{display:flex;flex-direction:column;overflow:hidden}
-.logs{flex:1;padding:10px 12px;overflow-y:auto;font-family:"SF Mono",SFMono-Regular,Consolas,monospace;font-size:10px;line-height:1.5}
+.logs{flex:1;padding:10px 12px;overflow-y:auto;font-family:"SF Mono",SFMono-Regular,Consolas,monospace;font-size:var(--fs-log);line-height:1.5}
 .log-entry{padding:1px 0;display:flex;gap:5px}
 .log-entry .time{color:var(--text-dim);white-space:nowrap;min-width:60px}
 .log-entry .level{min-width:44px;text-align:center;font-size:8px;padding:1px 2px;border-radius:2px;align-self:flex-start;margin-top:1px}
@@ -89,6 +89,15 @@ main{flex:1;display:grid;grid-template-columns:220px 1fr;grid-template-rows:auto
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
 .idle-item{padding:3px 6px;border-radius:3px;margin-bottom:2px;background:var(--bg);font-size:9px;border-left:2px solid var(--cyan)}
 .idle-item .ih-name{font-weight:500;color:var(--cyan)}.idle-item .ih-result{color:var(--text-dim)}
+.settings-btn{background:none;border:1px solid var(--border);border-radius:4px;padding:2px 6px;font-size:14px;cursor:pointer;color:var(--text-dim);line-height:1}
+.settings-btn:hover{border-color:var(--accent);color:var(--text)}
+.settings-panel{display:none;position:fixed;top:50px;right:16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;z-index:100;width:260px;box-shadow:0 8px 24px rgba(0,0,0,0.4)}
+.settings-panel.open{display:block}
+.settings-panel h3{font-size:13px;margin-bottom:12px;color:var(--text)}
+.setting-row{margin-bottom:10px}
+.setting-row label{display:block;font-size:11px;color:var(--text-dim);margin-bottom:4px}
+.setting-row input[type=range]{width:100%;accent-color:var(--accent)}
+.setting-row .val{float:right;font-size:11px;color:var(--accent)}
 .empty{color:var(--text-dim);text-align:center;padding:12px;font-size:11px}
 </style>
 </head>
@@ -102,8 +111,28 @@ main{flex:1;display:grid;grid-template-columns:220px 1fr;grid-template-rows:auto
     <span class="tb-badge" id="tbBadge">ToolBox: 0</span>
     <span class="hb-badge offline" id="hbBadge">Hayabusa offline</span>
     <div class="status-badge"><span class="status-dot" id="statusDot"></span><span id="statusText">...</span></div>
+    <button class="settings-btn" onclick="toggleSettings()" title="設定">&#9881;</button>
   </div>
 </header>
+<div class="settings-panel" id="settingsPanel">
+  <h3>表示設定</h3>
+  <div class="setting-row">
+    <label>タスク文字サイズ <span class="val" id="valTask">11px</span></label>
+    <input type="range" min="9" max="20" value="11" id="fsTask" oninput="applyFS()">
+  </div>
+  <div class="setting-row">
+    <label>ログ文字サイズ <span class="val" id="valLog">10px</span></label>
+    <input type="range" min="8" max="18" value="10" id="fsLog" oninput="applyFS()">
+  </div>
+  <div class="setting-row">
+    <label>サイドバー文字サイズ <span class="val" id="valSidebar">10px</span></label>
+    <input type="range" min="8" max="16" value="10" id="fsSidebar" oninput="applyFS()">
+  </div>
+  <div class="setting-row">
+    <label>入力欄文字サイズ <span class="val" id="valInput">16px</span></label>
+    <input type="range" min="12" max="24" value="16" id="fsInput" oninput="applyFS()">
+  </div>
+</div>
 <main>
   <aside class="sidebar">
     <div><h2>Projects</h2><div id="projectList"><div class="empty">...</div></div></div>
@@ -196,6 +225,7 @@ function fetchLogs(){
   fetch(API+'/api/logs').then(function(r){return r.json()}).then(function(logs){
     var el=document.getElementById('logArea');
     if(!logs.length){el.innerHTML='<div class="empty">ログなし</div>';return;}
+    logs=logs.slice(-20);
     el.innerHTML=logs.map(function(l){
       var t=new Date(l.timestamp),ts=pad(t.getHours())+':'+pad(t.getMinutes())+':'+pad(t.getSeconds());
       var isTB=l.message.indexOf('ToolBox')>=0;
@@ -221,6 +251,25 @@ function fetchIdleHistory(){
   }).catch(function(){});
 }
 function triggerIdle(){fetch(API+'/api/idle/resume',{method:'POST'}).then(function(){fetchLogs();});}
+// Settings
+function toggleSettings(){document.getElementById('settingsPanel').classList.toggle('open');}
+function applyFS(){
+  var t=document.getElementById('fsTask').value,l=document.getElementById('fsLog').value,s=document.getElementById('fsSidebar').value,i=document.getElementById('fsInput').value;
+  document.documentElement.style.setProperty('--fs-task',t+'px');
+  document.documentElement.style.setProperty('--fs-log',l+'px');
+  document.documentElement.style.setProperty('--fs-sidebar',s+'px');
+  document.querySelector('.input-area input').style.fontSize=i+'px';
+  document.getElementById('valTask').textContent=t+'px';
+  document.getElementById('valLog').textContent=l+'px';
+  document.getElementById('valSidebar').textContent=s+'px';
+  document.getElementById('valInput').textContent=i+'px';
+  try{localStorage.setItem('fanel-fs',JSON.stringify({t:t,l:l,s:s,i:i}));}catch(e){}
+}
+function loadFS(){
+  try{var d=JSON.parse(localStorage.getItem('fanel-fs'));if(!d)return;
+  document.getElementById('fsTask').value=d.t;document.getElementById('fsLog').value=d.l;document.getElementById('fsSidebar').value=d.s;document.getElementById('fsInput').value=d.i;applyFS();}catch(e){}
+}
+loadFS();
 var composing=false;
 document.getElementById('sendBtn').addEventListener('click',sendTask);
 document.getElementById('taskInput').addEventListener('compositionstart',function(){composing=true;});
