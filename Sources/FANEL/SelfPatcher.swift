@@ -48,6 +48,10 @@ actor SelfPatcher {
         "PeerSyncManager.swift",
         "CouncilManager.swift",
         "FANELApp.swift",
+        "Routes.swift",
+        "CommandRoom.html",
+        "SelfPatcher.swift",
+        "SelfReviewer.swift",
     ]
 
     /// 修正対象の重要度フィルター
