@@ -375,7 +375,7 @@ function editProject(id,name,path,status){
     +'<button class="pe-save" onclick="saveProject(\''+id+'\')" data-testid="project-save">保存</button>'
     +'<button class="pe-activate" onclick="activateProject(\''+id+'\');fetchProjects();" data-testid="project-activate">切替</button>'
     +'<button class="pe-delete" onclick="deleteProject(\''+id+'\')" data-testid="project-delete">削除</button>'
-    +'<button class="pe-cancel" onclick="fetchProjects()" data-testid="project-cancel">閉じる</button>'
+    +'<button class="pe-cancel" onclick="closeProjectEdit()" data-testid="project-cancel">閉じる</button>'
     +'</div></div>';
   document.getElementById('pe-name').focus();
 }
@@ -384,12 +384,18 @@ function saveProject(id){
   if(!n)return;
   fetch(API+'/api/projects/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:n,path:p})}).then(function(){fetchProjects();fetchLogs();}).catch(handleFetchError('SaveProject'));
 }
+function closeProjectEdit(){
+  var el=document.getElementById('projectList');
+  var edit=el.querySelector('.project-edit');
+  if(edit)edit.remove();
+  fetchProjects();
+}
 // Phase 2-1: プロジェクト追加
 function showAddProject(){
   var el=document.getElementById('projectList');
   el.innerHTML='<div class="project-edit"><input type="text" id="pe-add-name" placeholder="\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u540D"><input type="text" id="pe-add-path" placeholder="/Users/you/projects/xxx"><div class="pe-buttons">'
     +'<button class="pe-save" onclick="addProject()" data-testid="project-add-save">\u4FDD\u5B58</button>'
-    +'<button class="pe-cancel" onclick="fetchProjects()" data-testid="project-add-cancel">\u9589\u3058\u308B</button>'
+    +'<button class="pe-cancel" onclick="closeProjectEdit()" data-testid="project-add-cancel">\u9589\u3058\u308B</button>'
     +'</div></div>';
   document.getElementById('pe-add-name').focus();
 }
