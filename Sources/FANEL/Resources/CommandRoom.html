@@ -407,8 +407,14 @@ function editModel(id,name,layer,status){
     +'<button class="pe-save" onclick="saveModel(\''+id+'\')" data-testid="model-save">\u4FDD\u5B58</button>'
     +'<button class="pe-activate" onclick="benchmarkModel(\''+id+'\')" data-testid="model-bench">\u30D9\u30F3\u30C1</button>'
     +(status==='active'?'<button class="pe-delete" onclick="disableModel(\''+id+'\')" data-testid="model-disable">\u7121\u52B9\u5316</button>':'<button class="pe-activate" onclick="enableModel(\''+id+'\')" data-testid="model-enable">\u6709\u52B9\u5316</button>')
-    +'<button class="pe-cancel" onclick="fetchModels()" data-testid="model-cancel">\u9589\u3058\u308B</button>'
+    +'<button class="pe-cancel" onclick="closeModelEdit()" data-testid="model-cancel">\u9589\u3058\u308B</button>'
     +'</div></div>';
+}
+function closeModelEdit(){
+  var ml=document.getElementById('modelList');
+  var edit=ml.querySelector('.model-edit');
+  if(edit)edit.remove();
+  fetchModels();
 }
 function saveModel(id){
   var n=document.getElementById('me-name').value.trim(),l=parseInt(document.getElementById('me-layer').value),s=document.getElementById('me-status').value;
@@ -422,7 +428,7 @@ function showAddModel(){
   el.innerHTML='<div class="model-edit"><input type="text" id="me-add-name" placeholder="\u30E2\u30C7\u30EB\u540D\uFF08\u4F8B: qwen3-7b\uFF09">'
     +'<input type="text" id="me-add-path" placeholder="GGUF\u30D5\u30A1\u30A4\u30EB\u30D1\u30B9">'
     +'<select id="me-add-layer"><option value="1">Layer 1</option><option value="2" selected>Layer 2</option><option value="3">Layer 3</option></select>'
-    +'<div class="me-buttons"><button class="pe-save" onclick="addModel()" data-testid="model-add-save">\u8FFD\u52A0</button><button class="pe-cancel" onclick="fetchModels()" data-testid="model-add-cancel">\u9589\u3058\u308B</button></div></div>';
+    +'<div class="me-buttons"><button class="pe-save" onclick="addModel()" data-testid="model-add-save">\u8FFD\u52A0</button><button class="pe-cancel" onclick="closeModelEdit()" data-testid="model-add-cancel">\u9589\u3058\u308B</button></div></div>';
   document.getElementById('me-add-name').focus();
 }
 function addModel(){
