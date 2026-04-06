@@ -117,6 +117,32 @@ struct LooseJSONParser {
 
     // MARK: - デコード
 
+    /// 文字列からブレーススキャンで最初の完全なJSONオブジェクトを抽出
+    static func extractFirstJSON(_ text: String) -> String? {
+        var depth = 0
+        var start: String.Index?
+        var inStr = false
+        var esc = false
+        for (offset, ch) in text.enumerated() {
+            let idx = text.index(text.startIndex, offsetBy: offset)
+            if esc { esc = false; continue }
+            if ch == "\\" && inStr { esc = true; continue }
+            if ch == "\"" { inStr.toggle(); continue }
+            if inStr { continue }
+            if ch == "{" { if depth == 0 { start = idx }; depth += 1 }
+            else if ch == "}" {
+                depth -= 1
+                if depth == 0, let s = start {
+                    let candidate = String(text[s...idx])
+                    if isValidJSON(candidate) { return candidate }
+                    start = nil
+                }
+                if depth < 0 { depth = 0; start = nil }
+            }
+        }
+        return nil
+    }
+
     private static func isValidJSON(_ text: String) -> Bool {
         guard let data = text.data(using: .utf8) else { return false }
         return (try? JSONSerialization.jsonObject(with: data)) != nil

@@ -105,31 +105,35 @@ actor PeerSyncManager {
             throw FANELError.gitPushFailed(reason: "swift build が失敗しました")
         }
 
-        // git checkout -b, add, commit, push
-        let commands = [
-            ["git", "checkout", "-b", branch],
-            ["git", "add", "-A"],
-            ["git", "commit", "-m", "FANEL idle auto-commit: \(branch)"],
-            ["git", "push", "origin", branch]
-        ]
+        let cwd = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
 
-        for cmd in commands {
-            let proc = Process()
-            proc.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-            proc.arguments = cmd
-            proc.currentDirectoryURL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-            proc.standardOutput = Pipe()
-            proc.standardError = Pipe()
-            try proc.run()
-            proc.waitUntilExit()
+        // checkout -b → 失敗時は checkout（既存ブランチ）
+        if runGit(["checkout", "-b", branch], cwd: cwd) != 0 {
+            let _ = runGit(["checkout", branch], cwd: cwd)
+        }
 
-            if proc.terminationStatus != 0 && cmd[1] != "checkout" {
-                // checkout失敗はブランチ既存の場合があるので無視
-                throw FANELError.gitPushFailed(reason: "コマンド失敗: \(cmd.joined(separator: " "))")
-            }
+        guard runGit(["add", "-A"], cwd: cwd) == 0 else {
+            throw FANELError.gitPushFailed(reason: "git add failed")
+        }
+        // commitは変更がない場合に失敗するがpushは試みる
+        let _ = runGit(["commit", "-m", "FANEL idle auto-commit: \(branch)"], cwd: cwd)
+        guard runGit(["push", "origin", branch], cwd: cwd) == 0 else {
+            throw FANELError.gitPushFailed(reason: "git push failed")
         }
 
         await LogStore.shared.info("Git push完了: \(branch)")
+    }
+
+    private func runGit(_ args: [String], cwd: URL) -> Int32 {
+        let proc = Process()
+        proc.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+        proc.arguments = ["git"] + args
+        proc.currentDirectoryURL = cwd
+        proc.standardOutput = Pipe()
+        proc.standardError = Pipe()
+        do { try proc.run() } catch { return -1 }
+        proc.waitUntilExit()
+        return proc.terminationStatus
     }
 
     // MARK: - 同期状態

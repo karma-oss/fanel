@@ -65,17 +65,16 @@ actor ToolBoxManager {
         let scriptId = UUID()
         let scriptPath = "\(scriptsDir)/\(scriptId).sh"
 
-        // シンプルなechoスクリプト生成（タスクの応答を再現）
-        let message = task.message
-            .replacingOccurrences(of: "'", with: "'\\''")
-
+        // heredocパターンでインジェクション防止
         let script = """
         #!/bin/bash
         # FANEL ToolBox Script
-        # Generated from task: \(task.goal)
+        # Generated from task: \(task.goal.replacingOccurrences(of: "\\", with: "\\\\"))
         # Created: \(ISO8601DateFormatter().string(from: Date()))
 
-        echo '\(message)'
+        cat << 'FANEL_EOF'
+        \(task.message)
+        FANEL_EOF
         """
 
         let embedding = await EmbeddingEngine.shared.embed(text: task.goal)

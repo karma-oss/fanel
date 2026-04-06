@@ -1,6 +1,6 @@
 import Foundation
 
-indirect enum FANELError: Error, CustomStringConvertible {
+indirect enum FANELError: Error, LocalizedError, CustomStringConvertible {
     case claudeNotFound
     case processStartFailed(underlying: Error)
     case processCrashed(exitCode: Int32)
@@ -66,4 +66,6 @@ indirect enum FANELError: Error, CustomStringConvertible {
             return "Git push failed: \(reason)"
         }
     }
+
+    var errorDescription: String? { description }
 }

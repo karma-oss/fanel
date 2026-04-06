@@ -7,10 +7,13 @@ actor HayabusaClient {
     static let shared = HayabusaClient()
 
     private let logger = Logger(subsystem: "com.fanel", category: "HayabusaClient")
-    let baseURL = "http://localhost:8080"
+    private let baseURL: String
     private let timeoutSeconds: Double = 60
 
-    private init() {}
+    private init() {
+        self.baseURL = ProcessInfo.processInfo.environment["HAYABUSA_URL"]
+            ?? "http://localhost:8080"
+    }
 
     // MARK: - ヘルスチェック
 

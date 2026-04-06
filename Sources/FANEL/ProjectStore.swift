@@ -56,6 +56,7 @@ actor ProjectStore {
 
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
         if let loaded = try? decoder.decode([ProjectProfile].self, from: data) {
             for p in loaded {
                 projects[p.id] = p
@@ -146,6 +147,7 @@ actor ProjectStore {
         let all = order.compactMap { projects[$0] }
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
+        encoder.keyEncodingStrategy = .convertToSnakeCase
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         guard let data = try? encoder.encode(all) else { return }
         let dir = (filePath as NSString).deletingLastPathComponent

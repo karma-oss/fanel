@@ -8,7 +8,7 @@ actor EmbeddingEngine {
 
     private let logger = Logger(subsystem: "com.fanel", category: "EmbeddingEngine")
     private let dimensions = 128
-    // 日本語の一般的キーワード + プログラミング用語でボキャブラリ構築
+    private let maxVocabulary = 10000
     private var vocabulary: [String: Int] = [:]
     private var nextVocabIndex = 0
 
@@ -85,6 +85,10 @@ actor EmbeddingEngine {
     private func vocabIndex(for token: String) -> Int {
         if let idx = vocabulary[token] {
             return idx
+        }
+        // #12 Fix: vocabulary上限。超過後はハッシュベースのbucket割り当て
+        guard nextVocabIndex < maxVocabulary else {
+            return abs(token.hashValue) % dimensions
         }
         let idx = nextVocabIndex
         vocabulary[token] = idx

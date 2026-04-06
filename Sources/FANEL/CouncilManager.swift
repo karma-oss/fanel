@@ -234,7 +234,7 @@ actor CouncilManager {
 
     private func parseCouncilJSON(_ raw: String) -> CouncilAnalysis? {
         // LooseJSONParserのブレーススキャンと同様にJSONを探す
-        guard let data = extractFirstJSON(raw)?.data(using: .utf8) else { return nil }
+        guard let data = LooseJSONParser.extractFirstJSON(raw)?.data(using: .utf8) else { return nil }
 
         if let analysis = try? JSONDecoder().decode(CouncilAnalysis.self, from: data) {
             return analysis
@@ -257,28 +257,7 @@ actor CouncilManager {
         )
     }
 
-    private func extractFirstJSON(_ text: String) -> String? {
-        var depth = 0
-        var start: String.Index?
-        var inStr = false
-        var esc = false
-
-        for (offset, ch) in text.enumerated() {
-            let idx = text.index(text.startIndex, offsetBy: offset)
-            if esc { esc = false; continue }
-            if ch == "\\" && inStr { esc = true; continue }
-            if ch == "\"" { inStr.toggle(); continue }
-            if inStr { continue }
-            if ch == "{" { if depth == 0 { start = idx }; depth += 1 }
-            else if ch == "}" {
-                depth -= 1
-                if depth == 0, let s = start {
-                    return String(text[s...idx])
-                }
-            }
-        }
-        return nil
-    }
+    // extractFirstJSON は LooseJSONParser.extractFirstJSON に統合済み
 
     // MARK: - 合意判定
 

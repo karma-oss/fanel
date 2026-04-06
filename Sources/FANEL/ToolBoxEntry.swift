@@ -35,4 +35,17 @@ struct ToolBoxEntry: Codable, Sendable {
         case lastUsedAt = "last_used_at"
         case createdAt = "created_at"
     }
+
+    func withUsageIncremented() -> ToolBoxEntry {
+        ToolBoxEntry(id: id, name: name, description: description,
+                     scriptPath: scriptPath, scope: scope,
+                     sideEffectLevel: sideEffectLevel,
+                     requiresApproval: requiresApproval,
+                     safeToRunOnIdle: safeToRunOnIdle,
+                     rollbackStrategy: rollbackStrategy,
+                     dryRunSupported: dryRunSupported,
+                     embedding: embedding,
+                     usageCount: usageCount + 1,
+                     lastUsedAt: Date(), createdAt: createdAt)
+    }
 }

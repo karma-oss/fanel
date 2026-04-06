@@ -153,6 +153,14 @@ actor ClaudeProcessManager {
 
         if timedOut {
             process.terminate()
+            // SIGTERM後にパイプを閉じてreadDataToEndOfFileのブロックを解除
+            try? stdoutPipe.fileHandleForReading.close()
+            try? stderrPipe.fileHandleForReading.close()
+            // SIGTERMで終了しない場合のフォールバック
+            Task.detached {
+                try? await Task.sleep(nanoseconds: 2 * 1_000_000_000)
+                if process.isRunning { process.interrupt() }
+            }
             stdoutTask.cancel()
             stderrTask.cancel()
             throw FANELError.timeout(seconds: timeoutSeconds)

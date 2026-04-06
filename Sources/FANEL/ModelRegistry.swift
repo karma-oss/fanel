@@ -29,6 +29,19 @@ struct ModelProfile: Codable, Sendable {
         case memoryMB = "memory_mb"
         case profiledAt = "profiled_at"
     }
+
+    func updated(name: String? = nil, layer: Int? = nil,
+                 tokensPerSec: Double? = nil, qualityScore: Double? = nil,
+                 memoryMB: Int? = nil, status: ModelStatus? = nil,
+                 profiledAt: Date? = nil) -> ModelProfile {
+        ModelProfile(id: id, name: name ?? self.name, filePath: filePath,
+                     fileSizeMB: fileSizeMB, layer: layer ?? self.layer,
+                     tokensPerSec: tokensPerSec ?? self.tokensPerSec,
+                     qualityScore: qualityScore ?? self.qualityScore,
+                     memoryMB: memoryMB ?? self.memoryMB,
+                     status: status ?? self.status,
+                     profiledAt: profiledAt ?? self.profiledAt)
+    }
 }
 
 /// 利用可能なモデルを管理するActor
@@ -47,9 +60,12 @@ actor ModelRegistry {
     private init() {
         let home = FileManager.default.homeDirectoryForCurrentUser.path
         self.modelsDir = "\(home)/.hayabusa/models"
-        self.extraModelDirs = [
-            "\(home)/Desktop/名称未設定フォルダ/hayabusa/models"
-        ]
+        // FANEL_EXTRA_MODEL_DIRS 環境変数でコロン区切りで追加ディレクトリ指定
+        if let envDirs = ProcessInfo.processInfo.environment["FANEL_EXTRA_MODEL_DIRS"] {
+            self.extraModelDirs = envDirs.split(separator: ":").map(String.init)
+        } else {
+            self.extraModelDirs = []
+        }
     }
 
     // MARK: - 初期化・スキャン開始
@@ -184,32 +200,16 @@ actor ModelRegistry {
 
     func update(id: UUID, name: String?, layer: Int?, statusStr: String?) {
         guard let m = models[id] else { return }
-        let newStatus: ModelStatus
-        if let s = statusStr, let parsed = ModelStatus(rawValue: s) {
-            newStatus = parsed
-        } else {
-            newStatus = m.status
-        }
-        models[id] = ModelProfile(
-            id: m.id,
-            name: name ?? m.name,
-            filePath: m.filePath,
-            fileSizeMB: m.fileSizeMB,
-            layer: layer ?? m.layer,
-            tokensPerSec: m.tokensPerSec,
-            qualityScore: m.qualityScore,
-            memoryMB: m.memoryMB,
-            status: newStatus,
-            profiledAt: m.profiledAt
-        )
+        let newStatus = statusStr.flatMap { ModelStatus(rawValue: $0) }
+        models[id] = m.updated(name: name, layer: layer, status: newStatus)
         logger.info("Model updated: \(self.models[id]!.name)")
     }
 
     // MARK: - ベンチマーク実行
 
     func runBenchmark(modelId: UUID) async {
-        guard var model = models[modelId] else { return }
-        guard model.layer <= 3 else { return } // Claude Codeはベンチマーク不要
+        guard let model = models[modelId] else { return }
+        guard model.layer <= 3 else { return }
         guard !isBenchmarking else {
             await LogStore.shared.warning("別のベンチマークが実行中です")
             return
@@ -218,13 +218,7 @@ actor ModelRegistry {
         isBenchmarking = true
         defer { isBenchmarking = false }
 
-        // ステータス更新
-        models[modelId] = ModelProfile(
-            id: model.id, name: model.name, filePath: model.filePath,
-            fileSizeMB: model.fileSizeMB, layer: model.layer,
-            tokensPerSec: model.tokensPerSec, qualityScore: model.qualityScore,
-            memoryMB: model.memoryMB, status: .benchmarking, profiledAt: model.profiledAt
-        )
+        models[modelId] = model.updated(status: .benchmarking)
 
         await LogStore.shared.info("ベンチマーク開始: \(model.name)")
 
@@ -236,25 +230,16 @@ actor ModelRegistry {
             if result.qualityScore < 0.3 && layer > 1 { layer = max(1, layer - 1) }
             if result.qualityScore > 0.8 && layer < 3 { layer = min(3, layer + 1) }
 
-            let updated = ModelProfile(
-                id: model.id, name: model.name, filePath: model.filePath,
-                fileSizeMB: model.fileSizeMB, layer: layer,
-                tokensPerSec: result.tokensPerSec,
-                qualityScore: result.qualityScore,
-                memoryMB: model.fileSizeMB, // 近似値
-                status: .active, profiledAt: Date()
-            )
-            models[modelId] = updated
+            models[modelId] = model.updated(layer: layer,
+                                             tokensPerSec: result.tokensPerSec,
+                                             qualityScore: result.qualityScore,
+                                             memoryMB: model.fileSizeMB,
+                                             status: .active, profiledAt: Date())
 
             await LogStore.shared.info("ベンチマーク完了: \(model.name) — \(String(format: "%.1f", result.tokensPerSec)) tok/s, quality=\(String(format: "%.2f", result.qualityScore)), Layer \(layer)")
         } catch {
             // ベンチマーク失敗 → experimentalに戻す
-            models[modelId] = ModelProfile(
-                id: model.id, name: model.name, filePath: model.filePath,
-                fileSizeMB: model.fileSizeMB, layer: model.layer,
-                tokensPerSec: 0, qualityScore: 0, memoryMB: 0,
-                status: .experimental, profiledAt: Date()
-            )
+            models[modelId] = model.updated(tokensPerSec: 0, qualityScore: 0, memoryMB: 0, status: .experimental, profiledAt: Date())
             await LogStore.shared.error("ベンチマーク失敗: \(model.name) — \(error)")
         }
     }
@@ -282,22 +267,12 @@ actor ModelRegistry {
     // MARK: - モデル有効/無効
 
     func enable(id: UUID) {
-        guard var model = models[id] else { return }
-        models[id] = ModelProfile(
-            id: model.id, name: model.name, filePath: model.filePath,
-            fileSizeMB: model.fileSizeMB, layer: model.layer,
-            tokensPerSec: model.tokensPerSec, qualityScore: model.qualityScore,
-            memoryMB: model.memoryMB, status: .active, profiledAt: model.profiledAt
-        )
+        guard let model = models[id] else { return }
+        models[id] = model.updated(status: .active)
     }
 
     func disable(id: UUID) {
-        guard var model = models[id] else { return }
-        models[id] = ModelProfile(
-            id: model.id, name: model.name, filePath: model.filePath,
-            fileSizeMB: model.fileSizeMB, layer: model.layer,
-            tokensPerSec: model.tokensPerSec, qualityScore: model.qualityScore,
-            memoryMB: model.memoryMB, status: .inactive, profiledAt: model.profiledAt
-        )
+        guard let model = models[id] else { return }
+        models[id] = model.updated(status: .inactive)
     }
 }

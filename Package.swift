@@ -17,6 +17,10 @@ let package = Package(
             resources: [
                 .copy("Resources")
             ]
+        ),
+        .testTarget(
+            name: "FANELTests",
+            dependencies: ["FANEL"]
         )
     ]
 )
