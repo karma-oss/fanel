@@ -54,6 +54,7 @@ actor IdleTaskScheduler {
 
     private func runCycle() async {
         let tasks: [(name: String, run: () async -> String)] = [
+            ("自己進化サイクル", { await IdleTaskRunner.shared.runSelfEvolution() }),
             ("新モデルベンチマーク", { await IdleTaskRunner.shared.runPendingBenchmarks() }),
             ("ToolBoxスクリプト生成", { await IdleTaskRunner.shared.generateMissingScripts() }),
             ("コード改善提案", { await IdleTaskRunner.shared.generateImprovementSuggestions() }),

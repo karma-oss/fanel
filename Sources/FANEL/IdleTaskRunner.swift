@@ -10,6 +10,12 @@ actor IdleTaskRunner {
 
     private init() {}
 
+    // MARK: - Priority 0: 自己進化サイクル（index→review→patch一括）
+
+    func runSelfEvolution() async -> String {
+        return await SelfEvolutionOrchestrator.shared.runEvolutionCycle()
+    }
+
     // MARK: - Priority 1: 新モデルの自動ベンチマーク
 
     func runPendingBenchmarks() async -> String {

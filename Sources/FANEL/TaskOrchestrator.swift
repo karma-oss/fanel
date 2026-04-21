@@ -34,18 +34,33 @@ actor TaskOrchestrator {
             return await TaskStore.shared.get(id: taskId) ?? envelope
         }
 
-        // 排他制御
-        if isProcessing {
-            let msg = "別のタスクが実行中です。完了までお待ちください。"
-            await TaskStore.shared.update(id: taskId, status: .waiting, message: msg)
-            await LogStore.shared.warning(msg)
-            return await TaskStore.shared.get(id: taskId) ?? envelope
+        // Layer 0.5: 簡易タスクはCouncil省略
+        if shouldSkipCouncil(goal: goal) {
+            if isProcessing {
+                let msg = "別のタスクが実行中です。完了までお待ちください。"
+                await TaskStore.shared.update(id: taskId, status: .waiting, message: msg)
+                await LogStore.shared.warning(msg)
+                return await TaskStore.shared.get(id: taskId) ?? envelope
+            }
+            isProcessing = true
+            await LogStore.shared.info("Council省略（簡易タスク判定）: \(goal)")
+            let fastCouncil = CouncilResult(
+                goal: goal, constraints: [], complexity: 0,
+                executionPlan: ["直接実行"],
+                reviewPolicy: ReviewPolicy(maxLayer: 2, requiresApproval: false),
+                questionsForUser: [], risks: [],
+                consensusReached: true,
+                claudeAnalysis: "(Council省略)", codexAnalysis: "(未使用)"
+            )
+            let result = await executeViaWorkerPool(taskId: taskId, goal: goal, council: fastCouncil)
+            if let completed = await TaskStore.shared.get(id: taskId) {
+                Task { await ToolBoxManager.shared.considerRegistration(task: completed) }
+            }
+            isProcessing = false
+            return result
         }
 
-        isProcessing = true
-        defer { isProcessing = false }
-
-        // Council分析
+        // Council分析（ロック外で実行 → 並行タスクをブロックしない）
         await TaskStore.shared.update(id: taskId, status: .waitingForCouncil,
                                        message: "参謀会議中...")
         let council = await CouncilManager.shared.analyze(goal: goal)
@@ -71,6 +86,16 @@ actor TaskOrchestrator {
             return await TaskStore.shared.get(id: taskId) ?? envelope
         }
 
+        // 排他制御（実行直前にロック取得）
+        if isProcessing {
+            let msg = "別のタスクが実行中です。完了までお待ちください。"
+            await TaskStore.shared.update(id: taskId, status: .waiting, message: msg)
+            await LogStore.shared.warning(msg)
+            return await TaskStore.shared.get(id: taskId) ?? envelope
+        }
+
+        isProcessing = true
+
         // WorkerPoolで実行
         let result = await executeViaWorkerPool(taskId: taskId, goal: goal, council: council)
 
@@ -79,7 +104,17 @@ actor TaskOrchestrator {
             Task { await ToolBoxManager.shared.considerRegistration(task: completed) }
         }
 
+        isProcessing = false
         return result
+    }
+
+    // MARK: - Council省略判定
+
+    private func shouldSkipCouncil(goal: String) -> Bool {
+        let length = goal.count
+        let dangerKeywords = ["削除", "delete", "drop", "rm ", "全て", "移行", "migration", "refactor", "全部", "一括"]
+        let hasDanger = dangerKeywords.contains { goal.lowercased().contains($0) }
+        return length <= 150 && !hasDanger
     }
 
     // MARK: - ユーザー回答を受けてタスク再開
@@ -91,15 +126,6 @@ actor TaskOrchestrator {
         await LogStore.shared.info("ユーザー回答: \(answer) (task: \(taskId))")
         await IdleDetector.shared.recordActivity()
 
-        if isProcessing {
-            await TaskStore.shared.update(id: taskId, status: .waiting,
-                                           message: "別のタスクが実行中です。")
-            return await TaskStore.shared.get(id: taskId)
-        }
-
-        isProcessing = true
-        defer { isProcessing = false }
-
         let extendedGoal = "\(task.goal)\n\nユーザーからの追加情報: \(answer)"
 
         let council = task.councilResult ?? CouncilResult(
@@ -109,6 +135,15 @@ actor TaskOrchestrator {
             questionsForUser: [], risks: [], consensusReached: true,
             claudeAnalysis: "", codexAnalysis: ""
         )
+
+        // 排他制御（実行直前にロック取得）
+        if isProcessing {
+            await TaskStore.shared.update(id: taskId, status: .waiting,
+                                           message: "別のタスクが実行中です。")
+            return await TaskStore.shared.get(id: taskId)
+        }
+
+        isProcessing = true
 
         await TaskStore.shared.update(id: taskId, status: .running,
                                        message: "Worker選択中...",
@@ -122,16 +157,17 @@ actor TaskOrchestrator {
 
         do {
             let result = try await WorkerPool.shared.execute(task: updatedTask, councilResult: council)
-            // ToolBox登録判定
             if let completed = await TaskStore.shared.get(id: taskId) {
                 Task { await ToolBoxManager.shared.considerRegistration(task: completed) }
             }
+            isProcessing = false
             return result
         } catch {
             let msg = "Worker実行エラー: \(error)"
             await TaskStore.shared.update(id: taskId, status: .error, message: msg,
                                            councilResult: council)
             await LogStore.shared.error(msg)
+            isProcessing = false
             return await TaskStore.shared.get(id: taskId)
         }
     }

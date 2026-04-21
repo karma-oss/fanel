@@ -1,0 +1,24 @@
+{
+  "name": "fanel",
+  "version": "1.0.0",
+  "description": "自律進化型ローカル開発オーケストレーター。Claude Code・Hayabusa（ローカルLLM）・Codexを統合し、タスクの複雑度に応じてAIを自動選択。繰り返しタスクはスクリプト化してAI不使用で即実行。アイドル時はシステムが自律的に改善サイクルを回す。Mac / Apple Silicon専用。",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/karma-oss/fanel.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/karma-oss/fanel/issues"
+  },
+  "homepage": "https://github.com/karma-oss/fanel#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.59.1"
+  }
+}
